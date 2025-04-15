@@ -26,31 +26,37 @@ class _PreviewPageState extends State<PreviewPage> {
     super.initState();
 
     // entries ve currentIndex için güvenli başlatma
-    if (widget.entries == null || widget.entries!.isEmpty) {
-      entries = []; // Boş bir liste başlat
-    } else {
-      entries = widget.entries!;
-    }
-
-    if (widget.currentIndex == null ||
-        widget.currentIndex! < 0 ||
-        widget.currentIndex! >= entries.length) {
-      currentIndex = 0; // Varsayılan olarak ilk günlük indeksi
-    } else {
-      currentIndex = widget.currentIndex!;
-    }
+    entries = widget.entries ?? []; // Eğer null ise boş liste oluşturur
+    currentIndex = (widget.currentIndex != null &&
+            widget.currentIndex! >= 0 &&
+            widget.currentIndex! < entries.length)
+        ? widget.currentIndex!
+        : -1; // Geçersiz indeks için -1 atanır
   }
 
   @override
   Widget build(BuildContext context) {
-    // Eğer entries boşsa bir hata ekranı göster
-    if (entries.isEmpty) {
+    // Eğer entries boşsa veya currentIndex geçersizse bir hata ekranı göster
+    if (entries.isEmpty || currentIndex == -1) {
       return Scaffold(
         appBar: AppBar(title: const Text('Hata')),
-        body: const Center(
-          child: Text(
-            'Günlük verisi bulunamadı.',
-            style: TextStyle(fontSize: 18, color: Colors.red),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Günlük verisi bulunamadı veya geçersiz indeks.',
+                style: TextStyle(fontSize: 18, color: Colors.red),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context); // Bir önceki sayfaya dön
+                },
+                child: const Text('Geri Dön'),
+              ),
+            ],
           ),
         ),
       );
@@ -111,34 +117,32 @@ class _PreviewPageState extends State<PreviewPage> {
                   break;
               }
             },
-            itemBuilder:
-                (BuildContext context) => [
-                  PopupMenuItem(value: 'delete', child: const Text('Sil')),
-                  PopupMenuItem(
-                    value: 'pin',
-                    child: const Text('Liste başına yerleştir'),
-                  ),
-                  PopupMenuItem(value: 'share', child: const Text('Paylaş')),
-                  PopupMenuItem(
-                    value: 'export',
-                    child: const Text('PDF\'ye Aktar'),
-                  ),
-                  const PopupMenuDivider(),
-                  PopupMenuItem(
-                    enabled: false,
-                    child: Text(
-                      'Karakter: $characterCount, Kelime: $wordCount',
-                    ),
-                  ),
-                ],
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem(value: 'delete', child: Text('Sil')),
+              const PopupMenuItem(
+                value: 'pin',
+                child: Text('Liste başına yerleştir'),
+              ),
+              const PopupMenuItem(value: 'share', child: Text('Paylaş')),
+              const PopupMenuItem(
+                value: 'export',
+                child: Text('PDF\'ye Aktar'),
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                enabled: false,
+                child: Text(
+                  'Karakter: $characterCount, Kelime: $wordCount',
+                ),
+              ),
+            ],
           ),
         ],
       ),
       body: Container(
-        color:
-            isEyeComfortMode
-                ? const Color(0xFFFFF8E1)
-                : Colors.white, // Göz konforu modu için sarımtırak renk
+        color: isEyeComfortMode
+            ? const Color(0xFFFFF8E1)
+            : Colors.white, // Göz konforu modu için sarımtırak renk
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -191,42 +195,38 @@ class _PreviewPageState extends State<PreviewPage> {
                 children: [
                   // Önceki Butonu
                   TextButton(
-                    onPressed:
-                        currentIndex > 0
-                            ? () {
-                              setState(() {
-                                currentIndex--;
-                              });
-                            }
-                            : null, // İlk günlükteyken butonu pasif yap
+                    onPressed: currentIndex > 0
+                        ? () {
+                            setState(() {
+                              currentIndex--;
+                            });
+                          }
+                        : null, // İlk günlükteyken butonu pasif yap
                     child: Text(
                       'Önceki',
                       style: TextStyle(
-                        color:
-                            currentIndex > 0
-                                ? Colors.blue
-                                : Colors.grey, // Pasif renk
+                        color: currentIndex > 0
+                            ? Colors.blue
+                            : Colors.grey, // Pasif renk
                       ),
                     ),
                   ),
 
                   // Sonraki Butonu
                   TextButton(
-                    onPressed:
-                        currentIndex < entries.length - 1
-                            ? () {
-                              setState(() {
-                                currentIndex++;
-                              });
-                            }
-                            : null, // Son günlükteyken butonu pasif yap
+                    onPressed: currentIndex < entries.length - 1
+                        ? () {
+                            setState(() {
+                              currentIndex++;
+                            });
+                          }
+                        : null, // Son günlükteyken butonu pasif yap
                     child: Text(
                       'Sonraki',
                       style: TextStyle(
-                        color:
-                            currentIndex < entries.length - 1
-                                ? Colors.blue
-                                : Colors.grey, // Pasif renk
+                        color: currentIndex < entries.length - 1
+                            ? Colors.blue
+                            : Colors.grey, // Pasif renk
                       ),
                     ),
                   ),

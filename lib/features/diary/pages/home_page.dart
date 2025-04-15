@@ -8,9 +8,7 @@ import '../widgets/diary_entry_card.dart'; // Günlük kart tasarımı için wid
 class DiaryHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<DiaryProvider>(
-      context,
-    ); // DiaryProvider'a erişim
+    final provider = Provider.of<DiaryProvider>(context); // DiaryProvider'a erişim
     final entries = provider.entries; // Günlükleri al
 
     return Scaffold(
@@ -48,43 +46,42 @@ class DiaryHomePage extends StatelessWidget {
           ),
         ],
       ),
-      body:
-          entries.isEmpty
-              ? Center(
-                child: GestureDetector(
+      body: entries.isEmpty
+          ? Center(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AddEntryPage()),
+                  );
+                },
+                child: Text(
+                  'Henüz hiç günlük eklenmedi. Başlamak için buraya dokunun.',
+                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            )
+          : ListView.builder(
+              itemCount: entries.length,
+              itemBuilder: (context, index) {
+                final entry = entries[index];
+                return GestureDetector(
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => AddEntryPage()),
+                      MaterialPageRoute(
+                        builder: (context) => PreviewPage(
+                          entries: entries, // Tüm günlüklerin listesi
+                          currentIndex: index, // Seçilen günlüğün indeksi
+                        ),
+                      ),
                     );
                   },
-                  child: Text(
-                    'Henüz hiç günlük eklenmedi.',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                ),
-              )
-              : ListView.builder(
-                itemCount: entries.length,
-                itemBuilder: (context, index) {
-                  final entry = entries[index];
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => PreviewPage(
-                                entries: entries, // Tüm günlüklerin listesi
-                                currentIndex: index, // Seçilen günlüğün indeksi
-                              ),
-                        ),
-                      );
-                    },
-                    child: DiaryEntryCard(entry: entry),
-                  );
-                },
-              ),
+                  child: DiaryEntryCard(entry: entry),
+                );
+              },
+            ),
       bottomNavigationBar: BottomAppBar(
         shape: CircularNotchedRectangle(),
         notchMargin: 6,
