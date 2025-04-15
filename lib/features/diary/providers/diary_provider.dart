@@ -27,10 +27,16 @@ class DiaryProvider with ChangeNotifier {
   }
 
   void updateEntry(DiaryEntry oldEntry, DiaryEntry newEntry) {
+    final box = Hive.box<DiaryEntry>(HiveBoxes.diaryBox);
     final index = _entries.indexOf(oldEntry);
+
     if (index != -1) {
+      // Hive veritabanındaki kaydı güncelle
+      box.putAt(index, newEntry);
+
+      // _entries listesini güncelle
       _entries[index] = newEntry;
-      notifyListeners();
+      notifyListeners(); // UI'yi güncellemek için çağrılır
     }
   }
 }

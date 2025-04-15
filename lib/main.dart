@@ -35,11 +35,7 @@ class MyApp extends StatelessWidget {
         if (settings.name == '/preview') {
           final arguments = settings.arguments as Map<String, dynamic>;
           return MaterialPageRoute(
-            builder:
-                (context) => PreviewPage(
-                  entries: arguments['entries'], // Günlük listesi
-                  currentIndex: arguments['currentIndex'], // Şu anki indeks
-                ),
+            builder: (context) => PreviewPage(entry: arguments['entry']),
           );
         }
 

@@ -3,66 +3,27 @@ import 'package:intl/intl.dart';
 import '../models/diary_entry.dart';
 
 class PreviewPage extends StatefulWidget {
-  final List<DiaryEntry>? entries; // Tüm günlükler (nullable hale getirildi)
-  final int? currentIndex; // Şu anki günlük indeksi (nullable hale getirildi)
+  final DiaryEntry entry;
 
-  const PreviewPage({
-    Key? key,
-    required this.entries,
-    required this.currentIndex,
-  }) : super(key: key);
+  const PreviewPage({Key? key, required this.entry}) : super(key: key);
 
   @override
   _PreviewPageState createState() => _PreviewPageState();
 }
 
 class _PreviewPageState extends State<PreviewPage> {
-  late int currentIndex;
-  late List<DiaryEntry> entries;
   bool isEyeComfortMode = false;
+  late DiaryEntry currentEntry;
 
   @override
   void initState() {
     super.initState();
-
-    // entries ve currentIndex için güvenli başlatma
-    entries = widget.entries ?? []; // Eğer null ise boş liste oluşturur
-    currentIndex = (widget.currentIndex != null &&
-            widget.currentIndex! >= 0 &&
-            widget.currentIndex! < entries.length)
-        ? widget.currentIndex!
-        : -1; // Geçersiz indeks için -1 atanır
+    // Mevcut günlüğü başlat
+    currentEntry = widget.entry;
   }
 
   @override
   Widget build(BuildContext context) {
-    // Eğer entries boşsa veya currentIndex geçersizse bir hata ekranı göster
-    if (entries.isEmpty || currentIndex == -1) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Hata')),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'Günlük verisi bulunamadı veya geçersiz indeks.',
-                style: TextStyle(fontSize: 18, color: Colors.red),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context); // Bir önceki sayfaya dön
-                },
-                child: const Text('Geri Dön'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    final currentEntry = entries[currentIndex];
     final int characterCount = currentEntry.content.length;
     final int wordCount = currentEntry.content.split(' ').length;
 
@@ -83,7 +44,7 @@ class _PreviewPageState extends State<PreviewPage> {
               // Güncellenmiş veriyi al ve sayfayı yeniden oluştur
               if (updatedEntry != null && updatedEntry is DiaryEntry) {
                 setState(() {
-                  entries[currentIndex] = updatedEntry;
+                  currentEntry = updatedEntry;
                 });
               }
             },
@@ -118,15 +79,15 @@ class _PreviewPageState extends State<PreviewPage> {
               }
             },
             itemBuilder: (BuildContext context) => [
-              const PopupMenuItem(value: 'delete', child: Text('Sil')),
-              const PopupMenuItem(
+              PopupMenuItem(value: 'delete', child: const Text('Sil')),
+              PopupMenuItem(
                 value: 'pin',
-                child: Text('Liste başına yerleştir'),
+                child: const Text('Liste başına yerleştir'),
               ),
-              const PopupMenuItem(value: 'share', child: Text('Paylaş')),
-              const PopupMenuItem(
+              PopupMenuItem(value: 'share', child: const Text('Paylaş')),
+              PopupMenuItem(
                 value: 'export',
-                child: Text('PDF\'ye Aktar'),
+                child: const Text('PDF\'ye Aktar'),
               ),
               const PopupMenuDivider(),
               PopupMenuItem(
@@ -187,50 +148,6 @@ class _PreviewPageState extends State<PreviewPage> {
                     style: TextStyle(fontSize: 16, color: Colors.grey[800]),
                   ),
                 ),
-              ),
-
-              // Önceki ve Sonraki Butonları
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Önceki Butonu
-                  TextButton(
-                    onPressed: currentIndex > 0
-                        ? () {
-                            setState(() {
-                              currentIndex--;
-                            });
-                          }
-                        : null, // İlk günlükteyken butonu pasif yap
-                    child: Text(
-                      'Önceki',
-                      style: TextStyle(
-                        color: currentIndex > 0
-                            ? Colors.blue
-                            : Colors.grey, // Pasif renk
-                      ),
-                    ),
-                  ),
-
-                  // Sonraki Butonu
-                  TextButton(
-                    onPressed: currentIndex < entries.length - 1
-                        ? () {
-                            setState(() {
-                              currentIndex++;
-                            });
-                          }
-                        : null, // Son günlükteyken butonu pasif yap
-                    child: Text(
-                      'Sonraki',
-                      style: TextStyle(
-                        color: currentIndex < entries.length - 1
-                            ? Colors.blue
-                            : Colors.grey, // Pasif renk
-                      ),
-                    ),
-                  ),
-                ],
               ),
             ],
           ),

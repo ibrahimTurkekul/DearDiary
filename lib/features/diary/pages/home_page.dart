@@ -56,9 +56,8 @@ class DiaryHomePage extends StatelessWidget {
                   );
                 },
                 child: Text(
-                  'Henüz hiç günlük eklenmedi. Başlamak için buraya dokunun.',
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
-                  textAlign: TextAlign.center,
+                  'Henüz hiç günlük eklenmedi.',
+                  style: TextStyle(fontSize: 18),
                 ),
               ),
             )
@@ -71,10 +70,7 @@ class DiaryHomePage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => PreviewPage(
-                          entries: entries, // Tüm günlüklerin listesi
-                          currentIndex: index, // Seçilen günlüğün indeksi
-                        ),
+                        builder: (context) => PreviewPage(entry: entry),
                       ),
                     );
                   },

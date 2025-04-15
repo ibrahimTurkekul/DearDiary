@@ -10,20 +10,15 @@ class RouteManager {
         return MaterialPageRoute(builder: (_) => AddEntryPage());
       case '/preview':
         final args = settings.arguments as Map<String, dynamic>;
-        final List<DiaryEntry> entries = args['entries'];
-        final int currentIndex = args['currentIndex'];
-        return MaterialPageRoute(
-          builder:
-              (_) => PreviewPage(
-                entries: entries, // Günlüklerin tamamını gönder
-                currentIndex: currentIndex, // Seçili günlüğün indeksini gönder
-              ),
-        );
+        final DiaryEntry entry = args['entry'];
+        return MaterialPageRoute(builder: (_) => PreviewPage(entry: entry));
       default:
         return MaterialPageRoute(
-          builder:
-              (_) =>
-                  Scaffold(body: Center(child: Text('404 - Sayfa Bulunamadı'))),
+          builder: (_) => Scaffold(
+            body: Center(
+              child: Text('404 - Sayfa Bulunamadı'),
+            ),
+          ),
         );
     }
   }
