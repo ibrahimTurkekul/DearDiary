@@ -7,7 +7,7 @@ import '../models/diary_entry.dart';
 class EditPage extends StatefulWidget {
   final DiaryEntry entry;
 
-  const EditPage({Key? key, required this.entry}) : super(key: key);
+  const EditPage({super.key, required this.entry});
 
   @override
   _EditPageState createState() => _EditPageState();

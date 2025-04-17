@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:hive/hive.dart';
 import '../models/diary_entry.dart';
+import '../hive/hive_boxes.dart';
 
 class PreviewPage extends StatefulWidget {
-  final DiaryEntry entry;
+  final int initialIndex;
 
-  const PreviewPage({Key? key, required this.entry}) : super(key: key);
+  const PreviewPage({Key? key, required this.initialIndex}) : super(key: key);
 
   @override
   _PreviewPageState createState() => _PreviewPageState();
@@ -13,17 +15,36 @@ class PreviewPage extends StatefulWidget {
 
 class _PreviewPageState extends State<PreviewPage> {
   bool isEyeComfortMode = false;
-  late DiaryEntry currentEntry;
+  late int currentIndex;
+  late List<DiaryEntry> entries;
 
   @override
   void initState() {
     super.initState();
-    // Mevcut günlüğü başlat
-    currentEntry = widget.entry;
+    final box = Hive.box<DiaryEntry>(HiveBoxes.diaryBox);
+    entries = box.values.toList(); // Günlükleri al
+    currentIndex = widget.initialIndex; // Başlangıç indeksini ayarla
+  }
+
+  void goToNext() {
+    if (currentIndex < entries.length - 1) {
+      setState(() {
+        currentIndex++;
+      });
+    }
+  }
+
+  void goToPrevious() {
+    if (currentIndex > 0) {
+      setState(() {
+        currentIndex--;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final currentEntry = entries[currentIndex];
     final int characterCount = currentEntry.content.length;
     final int wordCount = currentEntry.content.split(' ').length;
 
@@ -44,7 +65,7 @@ class _PreviewPageState extends State<PreviewPage> {
               // Güncellenmiş veriyi al ve sayfayı yeniden oluştur
               if (updatedEntry != null && updatedEntry is DiaryEntry) {
                 setState(() {
-                  currentEntry = updatedEntry;
+                  entries[currentIndex] = updatedEntry;
                 });
               }
             },
@@ -149,6 +170,22 @@ class _PreviewPageState extends State<PreviewPage> {
                   ),
                 ),
               ),
+
+              // Önceki ve Sonraki Butonları
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ElevatedButton(
+                    onPressed: currentIndex > 0 ? goToPrevious : null,
+                    child: const Text('Önceki'),
+                  ),
+                  ElevatedButton(
+                    onPressed: currentIndex < entries.length - 1 ? goToNext : null,
+                    child: const Text('Sonraki'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
             ],
           ),
         ),

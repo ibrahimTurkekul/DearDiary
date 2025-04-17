@@ -50,9 +50,9 @@ class DiaryHomePage extends StatelessWidget {
           ? Center(
               child: GestureDetector(
                 onTap: () {
-                  Navigator.push(
+                  Navigator.pushNamed(
                     context,
-                    MaterialPageRoute(builder: (context) => AddEntryPage()),
+                    '/addEntry',
                   );
                 },
                 child: Text(
@@ -67,14 +67,22 @@ class DiaryHomePage extends StatelessWidget {
                 final entry = entries[index];
                 return GestureDetector(
                   onTap: () {
-                    Navigator.push(
+                    if (index != null) {
+                    Navigator.pushNamed(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => PreviewPage(entry: entry),
-                      ),
+                      '/preview',
+                      arguments: {'initialIndex': index}, // initialIndex'i gönder
                     );
+                    } else {
+                      print('Hata: initialIndex null olamaz');
+                    }
+                    print('Navigating to /preview with initialIndex: $index');
                   },
-                  child: DiaryEntryCard(entry: entry),
+                  child: DiaryEntryCard(entry: entry, onTap: () { Navigator.pushNamed(
+                  context,
+                '/preview',
+                arguments: {'initialIndex': index}, // initialIndex gönderiliyor
+        ); },),
                 );
               },
             ),

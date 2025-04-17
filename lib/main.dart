@@ -1,4 +1,5 @@
 import 'package:deardiary/features/diary/pages/edit_page.dart';
+import 'package:deardiary/shared/utils/route_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'features/diary/providers/diary_provider.dart';
@@ -25,23 +26,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       initialRoute: '/',
-      onGenerateRoute: (settings) {
-        if (settings.name == '/edit') {
-          final arguments = settings.arguments as Map<String, dynamic>;
-          return MaterialPageRoute(
-            builder: (context) => EditPage(entry: arguments['entry']),
-          );
-        }
-        if (settings.name == '/preview') {
-          final arguments = settings.arguments as Map<String, dynamic>;
-          return MaterialPageRoute(
-            builder: (context) => PreviewPage(entry: arguments['entry']),
-          );
-        }
-
-        // Diğer rotalar
-        return MaterialPageRoute(builder: (context) => DiaryHomePage());
-      },
+      onGenerateRoute: RouteManager.generateRoute,
     );
   }
-}
+  }

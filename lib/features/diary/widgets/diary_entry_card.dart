@@ -4,19 +4,15 @@ import '../models/diary_entry.dart';
 
 class DiaryEntryCard extends StatelessWidget {
   final DiaryEntry entry;
+  final VoidCallback onTap; // onTap işlevi parametre olarak alınıyor
 
-  const DiaryEntryCard({Key? key, required this.entry}) : super(key: key);
+  const DiaryEntryCard({Key? key, required this.entry, required this.onTap})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(
-          context,
-          '/preview',
-          arguments: {'entry': entry},
-        );
-      },
+      onTap: onTap, // Parametre olarak verilen onTap çağrılıyor
       child: Card(
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         shape: RoundedRectangleBorder(
