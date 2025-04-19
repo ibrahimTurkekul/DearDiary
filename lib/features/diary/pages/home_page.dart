@@ -1,123 +1,140 @@
+import 'package:deardiary/features/diary/models/diary_entry.dart';
+import 'package:deardiary/shared/utils/entry_actions.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; // Provider'ı import ediyoruz
+import 'package:provider/provider.dart';
 import '../providers/diary_provider.dart';
-import 'add_entry_page.dart'; // Günlük ekleme sayfasını import ediyoruz
-import 'preview_page.dart'; // Önizleme sayfasını import ediyoruz
-import '../widgets/diary_entry_card.dart'; // Günlük kart tasarımı için widget
+import '../widgets/year_grouped_diary_list.dart';
+import '../../../shared/utils/navigation_service.dart';
 
 class DiaryHomePage extends StatelessWidget {
+  const DiaryHomePage({super.key});
+
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<DiaryProvider>(context); // DiaryProvider'a erişim
-    final entries = provider.entries; // Günlükleri al
+    // Günlük verilerini sağlayıcıdan alıyoruz
+    final provider = Provider.of<DiaryProvider>(context);
+    final groupedEntries = provider.groupedEntries;
 
     return Scaffold(
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: Colors.purple),
-              child: Text(
-                'DearDiary',
-                style: TextStyle(color: Colors.white, fontSize: 24),
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Ayarlar'),
-              onTap: () {},
-            ),
-            ListTile(
-              leading: Icon(Icons.info),
-              title: Text('Hakkında'),
-              onTap: () {},
-            ),
-          ],
-        ),
+      drawer: const _DiaryDrawer(), // Drawer ayrı bir widget olarak tanımlandı
+      appBar: const _DiaryAppBar(), // AppBar ayrı bir widget olarak tanımlandı
+      body: _buildBody(groupedEntries, provider),
+      bottomNavigationBar: const _DiaryBottomNavigationBar(), // BottomNavigationBar ayrı bir widget olarak tanımlandı
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          NavigationService().navigateToAddEntry();
+        },
+        backgroundColor: Colors.purple,
+        child: const Icon(Icons.add),
       ),
-      appBar: AppBar(
-        title: Text('DearDiary'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () {
-              // Arama işlemi
+    );
+  }
+
+  // Body kısmını bir yardımcı metod olarak oluşturduk
+  Widget _buildBody(Map<int, List<DiaryEntry>> groupedEntries, DiaryProvider provider) {
+    if (groupedEntries.isEmpty) {
+      return const Center(
+        child: Text(
+          'Henüz hiç günlük eklenmedi.',
+          style: TextStyle(fontSize: 18),
+        ),
+      );
+    }
+
+    return YearGroupedDiaryList(
+      groupedEntries: groupedEntries,
+      onTap: (entry) => EntryActions.handleTap(entry, provider),
+      onLongPress: (entry) => EntryActions.handleLongPress(entry),
+    );
+  }
+}
+
+// Drawer için ayrı bir widget
+class _DiaryDrawer extends StatelessWidget {
+  const _DiaryDrawer();
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      child: ListView(
+        children: [
+          const DrawerHeader(
+            decoration: BoxDecoration(color: Colors.purple),
+            child: Text(
+              'DearDiary',
+              style: TextStyle(color: Colors.white, fontSize: 24),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings),
+            title: const Text('Ayarlar'),
+            onTap: () {
+              // Ayarlar ekranına geçiş
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.info),
+            title: const Text('Hakkında'),
+            onTap: () {
+              // Hakkında ekranına geçiş
             },
           ),
         ],
       ),
-      body: entries.isEmpty
-          ? Center(
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(
-                    context,
-                    '/addEntry',
-                  );
-                },
-                child: Text(
-                  'Henüz hiç günlük eklenmedi.',
-                  style: TextStyle(fontSize: 18),
-                ),
-              ),
-            )
-          : ListView.builder(
-              itemCount: entries.length,
-              itemBuilder: (context, index) {
-                final entry = entries[index];
-                return GestureDetector(
-                  onTap: () {
-                    if (index != null) {
-                    Navigator.pushNamed(
-                      context,
-                      '/preview',
-                      arguments: {'initialIndex': index}, // initialIndex'i gönder
-                    );
-                    } else {
-                      print('Hata: initialIndex null olamaz');
-                    }
-                    print('Navigating to /preview with initialIndex: $index');
-                  },
-                  child: DiaryEntryCard(entry: entry, onTap: () { Navigator.pushNamed(
-                  context,
-                '/preview',
-                arguments: {'initialIndex': index}, // initialIndex gönderiliyor
-        ); },),
-                );
-              },
-            ),
-      bottomNavigationBar: BottomAppBar(
-        shape: CircularNotchedRectangle(),
-        notchMargin: 6,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: <Widget>[
-            IconButton(
-              icon: Icon(Icons.calendar_today),
-              onPressed: () {
-                // Takvim
-              },
-            ),
-            SizedBox(width: 40), // FAB boşluğu
-            IconButton(
-              icon: Icon(Icons.person),
-              onPressed: () {
-                // Profil
-              },
-            ),
-          ],
+    );
+  }
+}
+
+// AppBar için ayrı bir widget
+class _DiaryAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const _DiaryAppBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      title: const Text('DearDiary'),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.search),
+          onPressed: () {
+            // Arama işlemi
+          },
         ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => AddEntryPage()),
-          );
-        },
-        child: Icon(Icons.add),
-        backgroundColor: Colors.purple,
+      ],
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+// BottomNavigationBar için ayrı bir widget
+class _DiaryBottomNavigationBar extends StatelessWidget {
+  const _DiaryBottomNavigationBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return BottomAppBar(
+      shape: const CircularNotchedRectangle(),
+      notchMargin: 6,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.calendar_today),
+            onPressed: () {
+              // Takvim ekranına geçiş
+            },
+          ),
+          const SizedBox(width: 40), // FAB boşluğu
+          IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: () {
+              // Profil ekranına geçiş
+            },
+          ),
+        ],
       ),
     );
   }

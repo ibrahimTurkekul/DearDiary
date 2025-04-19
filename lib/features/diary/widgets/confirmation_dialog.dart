@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class ConfirmationDialog extends StatelessWidget {
   final VoidCallback onConfirm;
 
-  const ConfirmationDialog({Key? key, required this.onConfirm}) : super(key: key);
+  const ConfirmationDialog({super.key, required this.onConfirm});
 
   @override
   Widget build(BuildContext context) {

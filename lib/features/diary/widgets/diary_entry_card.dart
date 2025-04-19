@@ -6,8 +6,7 @@ class DiaryEntryCard extends StatelessWidget {
   final DiaryEntry entry;
   final VoidCallback onTap; // onTap işlevi parametre olarak alınıyor
 
-  const DiaryEntryCard({Key? key, required this.entry, required this.onTap})
-      : super(key: key);
+  const DiaryEntryCard({super.key, required this.entry, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +53,7 @@ class DiaryEntryCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      entry.content.split('.').first + "...",
+                      "${entry.content.split('.').first}...",
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[700],

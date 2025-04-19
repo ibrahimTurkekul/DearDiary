@@ -5,6 +5,8 @@ import '../providers/diary_provider.dart';
 import '../models/diary_entry.dart';
 
 class AddEntryPage extends StatefulWidget {
+  const AddEntryPage({super.key});
+
   @override
   _AddEntryPageState createState() => _AddEntryPageState();
 }

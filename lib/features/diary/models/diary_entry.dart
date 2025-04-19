@@ -3,7 +3,7 @@ import 'package:hive/hive.dart';
 part 'diary_entry.g.dart'; // Hive için oluşturulacak adapter dosyası
 
 @HiveType(typeId: 0) // Her model için benzersiz bir typeId verin
-class DiaryEntry {
+class DiaryEntry extends HiveObject {
   @HiveField(0)
   final String title;
 

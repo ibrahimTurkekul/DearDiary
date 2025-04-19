@@ -7,7 +7,7 @@ import '../hive/hive_boxes.dart';
 class PreviewPage extends StatefulWidget {
   final int initialIndex;
 
-  const PreviewPage({Key? key, required this.initialIndex}) : super(key: key);
+  const PreviewPage({super.key, required this.initialIndex});
 
   @override
   _PreviewPageState createState() => _PreviewPageState();

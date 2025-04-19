@@ -1,3 +1,4 @@
+import 'package:deardiary/shared/utils/diary_entry_grouper.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import '../models/diary_entry.dart';
@@ -7,10 +8,15 @@ class DiaryProvider with ChangeNotifier {
   List<DiaryEntry> _entries = [];
 
   List<DiaryEntry> get entries => _entries;
+  Map<int, List<DiaryEntry>> get groupedEntries {
+    return DiaryEntryGrouper.groupByYear(_entries);
+  }
 
   void loadEntries() {
     final box = Hive.box<DiaryEntry>(HiveBoxes.diaryBox);
     _entries = box.values.toList();
+    // Debug için ekleme
+    print('Loaded entries: $_entries');
     notifyListeners(); // UI'yi güncellemek için çağrılır
   }
 
