@@ -11,7 +11,10 @@ class DiaryProvider with ChangeNotifier {
   Map<int, List<DiaryEntry>> get groupedEntries {
     return DiaryEntryGrouper.groupByYear(_entries);
   }
-
+  DiaryProvider() {
+    // Günlükleri otomatik yüklemek için constructor'a yükleme çağrısı eklendi
+    loadEntries();
+  }
   void loadEntries() {
     final box = Hive.box<DiaryEntry>(HiveBoxes.diaryBox);
     _entries = box.values.toList();
@@ -26,9 +29,8 @@ class DiaryProvider with ChangeNotifier {
     loadEntries(); // Yeni günlük eklendiğinde listeyi günceller
   }
 
-  void deleteEntry(int index) {
-    final box = Hive.box<DiaryEntry>(HiveBoxes.diaryBox);
-    box.deleteAt(index);
+ void deleteEntry(DiaryEntry entry) {
+    entry.delete(); // Hive'dan ilgili kaydı sil
     loadEntries(); // Günlük silindiğinde listeyi günceller
   }
 

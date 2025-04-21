@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/diary_entry.dart';
+import '../../../shared/utils/selection_manager.dart';
 import 'diary_entry_card.dart';
 
 class YearGroupedDiaryList extends StatelessWidget {
@@ -8,11 +10,11 @@ class YearGroupedDiaryList extends StatelessWidget {
   final Function(DiaryEntry) onLongPress;
 
   const YearGroupedDiaryList({
-    Key? key,
+    super.key,
     required this.groupedEntries,
     required this.onTap,
     required this.onLongPress,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -42,15 +44,37 @@ class YearGroupedDiaryList extends StatelessWidget {
             ),
             // Günlükleri map ile dönüyoruz
             ...entries.map((entry) {
-              return GestureDetector(
-                onTap: () => onTap(entry),
-                onLongPress: () => onLongPress(entry),
-                child: DiaryEntryCard(
-                  entry: entry,
-                  onTap: () => onTap(entry),
-                ),
+              return Selector<SelectionManager, bool>(
+                selector: (_, selectionManager) => selectionManager.selectedEntries.contains(entry),
+                builder: (context, isSelected, child) {
+                  return GestureDetector(
+                    onTap: () {
+                      final selectionManager = Provider.of<SelectionManager>(context, listen: false);
+                      if (selectionManager.isSelectionMode) {
+                        selectionManager.toggleEntrySelection(entry);
+                      } else {
+                        onTap(entry);
+                      }
+                    },
+                    onLongPress: () {
+                      final selectionManager = Provider.of<SelectionManager>(context, listen: false);
+                      if (!selectionManager.isSelectionMode) {
+                        selectionManager.toggleSelectionMode();
+                      }
+                      selectionManager.toggleEntrySelection(entry);
+                      onLongPress(entry);
+                    },
+                    child: Container(
+                      color: isSelected ? Colors.blue.withOpacity(0.2) : Colors.transparent,
+                      child: DiaryEntryCard(
+                        entry: entry,
+                        onTap: () => onTap(entry),
+                      ),
+                    ),
+                  );
+                },
               );
-            }).toList(),
+            }),
           ],
         );
       },

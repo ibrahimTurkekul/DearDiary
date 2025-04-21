@@ -1,8 +1,9 @@
 import 'package:deardiary/shared/utils/navigation_service.dart';
 import 'package:deardiary/shared/utils/route_manager.dart';
+import 'package:deardiary/shared/utils/selection_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'features/diary/providers/diary_provider.dart';
+import 'features/diary/providers/diary_provider.dart'; // DiaryProvider sınıfı
 import 'features/diary/hive/hive_boxes.dart';
 
 void main() async {
@@ -11,9 +12,12 @@ void main() async {
   await HiveBoxes.initializeHive();
 
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => DiaryProvider()..loadEntries(),
-      child: MyApp(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => DiaryProvider()),
+        ChangeNotifierProvider(create: (_) => SelectionManager()),
+      ],
+      child: const MyApp(),
     ),
   );
 }
@@ -30,4 +34,4 @@ class MyApp extends StatelessWidget {
       onGenerateRoute: RouteManager.generateRoute,
     );
   }
-  }
+}

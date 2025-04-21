@@ -1,8 +1,10 @@
+import 'package:deardiary/features/calendar/calendar_page.dart';
 import 'package:deardiary/features/diary/pages/edit_page.dart';
 import 'package:deardiary/features/diary/pages/home_page.dart';
+import 'package:deardiary/features/diary/pages/search_page.dart'; 
 import 'package:deardiary/shared/utils/navigation_service.dart';
 import 'package:flutter/material.dart';
-import '../../features/diary/pages/add_entry_page.dart';
+import '../../features/diary/pages/addEntryPages/add_entry_page.dart';
 import '../../features/diary/pages/preview_page.dart';
 import '../../features/diary/models/diary_entry.dart';
 
@@ -16,7 +18,9 @@ class RouteManager {
         return MaterialPageRoute(builder: (_) => const DiaryHomePage());
 
       case '/addEntry':
-        return MaterialPageRoute(builder: (_) => const AddEntryPage());
+        final args = settings.arguments as Map<String, dynamic>? ?? {};
+        final DateTime? date = args['date'];
+        return MaterialPageRoute(builder: (_) => AddEntryPage(date: date)); 
 
       case '/edit':
         // Düzenleme sayfasına geçiş
@@ -40,6 +44,13 @@ class RouteManager {
         return MaterialPageRoute(
           builder: (_) => PreviewPage(initialIndex: initialIndex),
         );
+
+      case '/calendar':
+        // Takvim sayfasına geçiş
+        return MaterialPageRoute(builder: (_) => const CalendarPage());
+      case '/search':
+        // Arama sayfasına geçiş
+        return MaterialPageRoute(builder: (_) => const SearchPage());
 
       default:
         // Varsayılan olarak 404 sayfası
