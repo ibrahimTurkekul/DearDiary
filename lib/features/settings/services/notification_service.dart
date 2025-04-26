@@ -3,6 +3,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter/material.dart';
 
+
 class NotificationService extends ChangeNotifier {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
@@ -15,8 +16,21 @@ class NotificationService extends ChangeNotifier {
         InitializationSettings(android: initializationSettingsAndroid);
 
     await _flutterLocalNotificationsPlugin.initialize(initializationSettings);
+    // Android 13 ve üzeri için bildirim izinlerini kontrol edin
+    if (await _flutterLocalNotificationsPlugin
+            .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>()
+            ?.areNotificationsEnabled() ??
+        false) {
+      debugPrint("Bildirimler açık");
+    } else {
+      debugPrint("Bildirim izni alınmamış. Lütfen izin isteyin.");
+    }
+
     tz.initializeTimeZones();
   }
+
+  
 
   Future<void> showDailyReminderNotification({
     required int id,
@@ -108,3 +122,4 @@ void handleNotificationAction(String actionId, Null Function() param1) {
     await _flutterLocalNotificationsPlugin.cancel(id);
   }
 }
+

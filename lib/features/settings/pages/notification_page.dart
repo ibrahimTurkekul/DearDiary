@@ -36,6 +36,8 @@ Future<void> requestExactAlarmPermission() async {
     _pinnedNotificationEnabled = settingsManager.pinnedNotificationEnabled; // SettingsManager'dan çekildi
     _reminderTime = settingsManager.reminderTime;
     _reminderSentence = settingsManager.reminderSentence;
+
+    
   }
 
   @override
