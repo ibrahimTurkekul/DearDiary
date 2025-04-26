@@ -2,6 +2,7 @@ import 'package:deardiary/features/diary/models/diary_entry.dart';
 import 'package:deardiary/shared/utils/entry_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:simple_ripple_animation/simple_ripple_animation.dart';
 import '../providers/diary_provider.dart';
 import '../widgets/year_grouped_diary_list.dart';
 import '../../../shared/utils/navigation_service.dart';
@@ -28,13 +29,24 @@ class DiaryHomePage extends StatelessWidget {
       ),
       bottomNavigationBar: const _DiaryBottomNavigationBar(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: RippleAnimation(
+        color: Colors.grey,
+            delay: const Duration(milliseconds: 300),
+            repeat: true,
+            minRadius: 20,
+            maxRadius: 40,
+            ripplesCount: 1,
+            duration: const Duration(milliseconds: 8 * 300),
+        child: FloatingActionButton(
         onPressed: () {
           NavigationService().navigateToAddEntry();
         },
         backgroundColor: Colors.purple,
+        shape: const CircleBorder(),
         child: const Icon(Icons.add),
       ),
+
+      ), 
     );
   }
 
@@ -141,9 +153,10 @@ class _DiaryDrawer extends StatelessWidget {
             title: const Text('Tema'),
             onTap: () {
               // Tema Seçenekleri ekranına geçiş
+              NavigationService().navigateTo('/theme');
             },
           ),
-          Divider(height: 1, color: Colors.grey[300]),
+          Divider(height: 30, color: Colors.grey[300]),
           ListTile(
             leading: const Icon(Icons.lock),
             title: const Text('Günlük Kilidi'),
@@ -165,7 +178,7 @@ class _DiaryDrawer extends StatelessWidget {
               // içe ve dışa aktarma ekranına geçiş
             },
           ),
-          Divider(height: 1, color: Colors.grey[300]),
+          Divider(height: 30, color: Colors.grey[300]),
           ListTile(
             leading: const Icon(Icons.favorite),
             title: const Text('Bağış Yap'),
@@ -192,6 +205,7 @@ class _DiaryDrawer extends StatelessWidget {
             title: const Text('Ayarlar'),
             onTap: () {
               // Ayarlar ekranına geçiş
+              NavigationService().navigateTo('/settings');
             },
           ),
         ],

@@ -32,7 +32,7 @@ class YearGroupedDiaryList extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.only(top: 10.0, left: 10.0,bottom: BorderSide.strokeAlignCenter),
               child: Text(
                 '$year',
                 style: const TextStyle(

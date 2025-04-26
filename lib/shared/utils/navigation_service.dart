@@ -14,22 +14,40 @@ class NavigationService {
   }
 
   Future<dynamic> navigateToAddEntry({DateTime? date}) {
-   // Eğer tarih verilmemişse, bugünün tarihini kullan
-     final now = DateTime.now();
-     final selectedDate = DateTime(
-       date?.year ?? now.year,
-       date?.month ?? now.month,
-       date?.day ?? now.day,
-       now.hour,
-       now.minute,
-     );
-  return navigateTo('/addEntry', arguments: {'date': selectedDate});
+    // Eğer tarih verilmemişse, bugünün tarihini kullan
+    final now = DateTime.now();
+    final selectedDate = DateTime(
+      date?.year ?? now.year,
+      date?.month ?? now.month,
+      date?.day ?? now.day,
+      now.hour,
+      now.minute,
+    );
+    return navigateTo('/addEntry', arguments: {'date': selectedDate});
   }
-  
+
   Future<dynamic> navigateToPreview(int index) => navigateTo('/preview', arguments: {'initialIndex': index});
-  
+
   Future<dynamic> navigateToCalendar() => navigateTo('/calendar'); // CalendarPage için eklenen kod
+
   Future<dynamic> navigateToSearch() => navigateTo('/search'); // SearchPage için eklenen kod
+
+  Future<dynamic> navigateToSettings() => navigateTo('/settings'); // SettingsPage için eklenen kod
+
+  Future<dynamic> navigateToTheme() => navigateTo('/theme'); // ThemePage için eklenen kod
+  Future<dynamic> navigateToTimeFormat() => navigateTo('/timeFormat'); // TimeFormatPage için eklenen kod 
+  Future<dynamic> navigateToFirstDayOfWeek() => navigateTo('/firstDayOfWeek'); // FirstDayOfWeekPage için eklenen kod
+  Future<dynamic> navigateToDateFormat() => navigateTo('/dateFormat'); // DateFormatPage için eklenen kod 
+  Future<dynamic> navigateToMoodStyle() => navigateTo('/moodStyle'); // MoodStylePage için eklenen kod
+  Future<dynamic> navigateToDailyLock() => navigateTo('/dailyLock'); // DailyLockPage için eklenen kod
+  Future<dynamic> navigateToBackupOptions() => navigateTo('/backupOptions'); // BackupOptionsPage için eklenen kod
+  Future<dynamic> navigateToWidgetSettings() => navigateTo('/widgetSettings'); // WidgetSettingsPage için eklenen kod 
+  Future<dynamic> navigateToNotifications() => navigateTo('/notifications'); // NotificationPage için eklenen kod
+  Future<dynamic> navigateToPrivacyPolicy() => navigateTo('/privacyPolicy'); // PrivacyPolicyPage için eklenen kod  
+  Future<dynamic> navigateToLanguageSelection() => navigateTo('/languageSelection'); // LanguageSelectionPage için eklenen kod
+  Future<dynamic> navigateToFeedback() => navigateTo('/feedback'); // FeedbackPage için eklenen kod
+  Future<dynamic> navigateToDiaryLock() => navigateTo('/donations'); // DiaryLockPage için eklenen kod
+
   
 
   void goBack() {

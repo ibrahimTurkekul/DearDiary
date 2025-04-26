@@ -1,9 +1,11 @@
+import 'package:deardiary/features/diary/widgets/diary_entry_card.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:provider/provider.dart';
 import '../diary/models/diary_entry.dart';
 import '../diary/providers/diary_provider.dart';
 import '../../shared/utils/navigation_service.dart';
+import '../../features/settings/services/settings_manager.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -14,18 +16,34 @@ class CalendarPage extends StatefulWidget {
 
 class _CalendarPageState extends State<CalendarPage> {
   DateTime _selectedDay = DateTime.now();
-  CalendarFormat _calendarFormat = CalendarFormat.month; // Varsayılan format
+  DateTime _focusedDay = DateTime.now();
+  CalendarFormat _calendarFormat = CalendarFormat.month;
   Map<DateTime, List<DiaryEntry>> _groupedEntries = {};
-
-  @override
-  void initState() {
-    super.initState();
-  }
+  StartingDayOfWeek _startingDayOfWeek = StartingDayOfWeek.monday;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _groupEntries(); // Günlükleri her build çağrısında gruplandır
+    _updateStartingDayOfWeek();
+    _groupEntries();
+  }
+
+  void _updateStartingDayOfWeek() {
+    final settingsManager = Provider.of<SettingsManager>(context);
+    final firstDay = settingsManager.firstDayOfWeek ?? 'Pazartesi';
+
+    setState(() {
+      switch (firstDay) {
+        case 'Pazar':
+          _startingDayOfWeek = StartingDayOfWeek.sunday;
+          break;
+        case 'Cumartesi':
+          _startingDayOfWeek = StartingDayOfWeek.saturday;
+          break;
+        default:
+          _startingDayOfWeek = StartingDayOfWeek.monday;
+      }
+    });
   }
 
   void _groupEntries() {
@@ -40,26 +58,63 @@ class _CalendarPageState extends State<CalendarPage> {
       }
       _groupedEntries[entryDate]!.add(entry);
     }
-    setState(() {}); // Güncellemeleri yansıt
+    setState(() {});
   }
 
   List<DiaryEntry> _getEntriesForDay(DateTime day) {
     final entries = _groupedEntries[DateTime(day.year, day.month, day.day)] ?? [];
-    return entries.reversed.toList(); // Günlükleri ters sırada döndür
+    return entries.reversed.toList();
   }
 
   String _getMoodEmoji(List<DiaryEntry> entries) {
     if (entries.isNotEmpty) {
-      final latestEntry = entries.last; // Son eklenen günlüğün ruh hali
+      final latestEntry = entries.last;
       return latestEntry.mood ?? '';
     }
     return '';
   }
 
+  void _showMonthYearPicker(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _focusedDay,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Colors.purple, // Header background color
+              onPrimary: Colors.white, // Header text color
+              onSurface: Colors.black, // Body text color
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.purple, // Button text color
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null && picked != _focusedDay) {
+      setState(() {
+        _focusedDay = DateTime(picked.year, picked.month, 1); // Ayın ilk günü
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<DiaryProvider>(context);
+    final settingsManager = Provider.of<SettingsManager>(context);
     final selectedDayEntries = _getEntriesForDay(_selectedDay);
+
+    // Zaman biçimi (24 saat veya 12 saat)
+    final timeFormat = settingsManager.settings?.timeFormat ?? '24-hour';
+    final is24HourFormat = timeFormat == '24-hour';
 
     return Scaffold(
       appBar: AppBar(
@@ -71,21 +126,37 @@ class _CalendarPageState extends State<CalendarPage> {
             TableCalendar(
               firstDay: DateTime.utc(2000, 1, 1),
               lastDay: DateTime.utc(2100, 12, 31),
-              focusedDay: _selectedDay,
-              calendarFormat: _calendarFormat, // Varsayılan format
+              focusedDay: _focusedDay,
+              calendarFormat: _calendarFormat,
+              startingDayOfWeek: _startingDayOfWeek, // Haftanın ilk günü
               availableCalendarFormats: const {
-                CalendarFormat.month: 'Month', // Aylık görünüm
-                CalendarFormat.twoWeeks: '2 Weeks', // 2 haftalık görünüm
-                CalendarFormat.week: 'Week', // Haftalık görünüm
+                CalendarFormat.month: 'Month',
+                CalendarFormat.twoWeeks: '2 Weeks',
+                CalendarFormat.week: 'Week',
               },
               selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
               calendarBuilders: CalendarBuilders(
                 defaultBuilder: (context, day, focusedDay) {
-                  final entries = _getEntriesForDay(day); // O güne ait günlükler
-                  final emoji = _getMoodEmoji(entries); // Son eklenen günlüğün emojisi
+                  final entries = _getEntriesForDay(day);
+                  final emoji = _getMoodEmoji(entries);
+
+                  if (entries.isNotEmpty) {
+                    if (settingsManager.showMoodInCalendar && emoji.isNotEmpty) {
+                      return Center(
+                        child: Text(
+                          emoji,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      );
+                    } else {
+                      return const Center(
+                        child: Icon(Icons.send, size: 16, color: Colors.grey),
+                      );
+                    }
+                  }
                   return Center(
                     child: Text(
-                      emoji.isNotEmpty ? emoji : '${day.day}', // Emojiyi göster veya günü yaz
+                      '${day.day}',
                       style: const TextStyle(fontSize: 16),
                     ),
                   );
@@ -93,15 +164,22 @@ class _CalendarPageState extends State<CalendarPage> {
               ),
               onDaySelected: (selectedDay, focusedDay) {
                 setState(() {
-                  _selectedDay = selectedDay; // Seçilen günü güncelle
+                  _selectedDay = selectedDay;
+                  _focusedDay = focusedDay;
                 });
               },
               onFormatChanged: (format) {
                 setState(() {
-                  _calendarFormat = format; // Takvim biçimini güncelle
+                  _calendarFormat = format;
+                });
+              },
+              onPageChanged: (focusedDay) {
+                setState(() {
+                  _focusedDay = focusedDay;
                 });
               },
             ),
+           
             const SizedBox(height: 16),
             Text(
               '${_selectedDay.day} ${_getMonthName(_selectedDay.month)} ${_selectedDay.year}, ${_getWeekdayName(_selectedDay.weekday)}',
@@ -121,27 +199,13 @@ class _CalendarPageState extends State<CalendarPage> {
                     itemCount: selectedDayEntries.length,
                     itemBuilder: (context, index) {
                       final entry = selectedDayEntries[index];
-                      return Card(
-                        child: ListTile(
-                          onTap: () {
-                            final correctIndex = provider.entries.indexOf(entry); // Doğru index hesabı
-                            NavigationService().navigateToPreview(correctIndex);
-                          },
-                          leading: Text(
-                            '${entry.date.hour.toString().padLeft(2, '0')}:${entry.date.minute.toString().padLeft(2, '0')}',
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                          ),
-                          title: Text(entry.title),
-                          subtitle: Text(
-                            '${entry.content.split('.').first}...',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          trailing: Text(
-                            entry.mood ?? '',
-                            style: const TextStyle(fontSize: 20),
-                          ),
-                        ),
+                      return DiaryEntryCard(
+                        entry: entry,
+                        onTap: () {
+                          final correctIndex = provider.entries.indexOf(entry);
+                          NavigationService().navigateToPreview(correctIndex);
+                        },
+                        displayOnlyTime: true, // Sadece saat göstermek için
                       );
                     },
                   ),
@@ -151,7 +215,7 @@ class _CalendarPageState extends State<CalendarPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           await NavigationService().navigateToAddEntry(date: _selectedDay);
-          _groupEntries(); // Yeni günlük eklendiğinde tabloyu yeniden grupla
+          _groupEntries();
         },
         child: const Icon(Icons.add),
       ),

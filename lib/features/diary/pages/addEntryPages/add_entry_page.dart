@@ -1,4 +1,5 @@
 import 'package:deardiary/features/diary/pages/addEntryPages/more_moods_page.dart';
+import 'package:deardiary/features/settings/services/settings_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -9,9 +10,10 @@ import 'entry_toolbar.dart';
 
 class AddEntryPage extends StatefulWidget {
   final DateTime? date;
-  const AddEntryPage({Key? key, this.date}) : super(key: key);
+  const AddEntryPage({super.key, this.date});
 
   @override
+  // ignore: library_private_types_in_public_api
   _AddEntryPageState createState() => _AddEntryPageState();
 }
 
@@ -25,11 +27,18 @@ class _AddEntryPageState extends State<AddEntryPage> {
   @override
   void initState() {
     super.initState();
-    // Sayfa yüklendiğinde popup'ı göster
     selectedDate = widget.date ?? DateTime.now();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _showMoodPopup();
-    });
+    // Sayfa yüklendiğinde popup'ı göster
+    final settingsManager = Provider.of<SettingsManager>(context, listen: false);
+    if (settingsManager.skipMoodSelection) {
+      // Eğer Ruh Hali Seçimini Atla aktifse, varsayılan ruh halini seç
+      selectedMood = "😊"; // Varsayılan ruh hali emojisi
+    } else {
+      // Eğer Ruh Hali Seçimini Atla aktif değilse, popup göster
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showMoodPopup();
+      });
+    }
   }
 
   void _showMoodPopup() {
