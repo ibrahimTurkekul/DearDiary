@@ -2,6 +2,7 @@ import 'package:android_intent_plus/android_intent.dart';
 import 'package:deardiary/features/settings/services/notification_service.dart';
 import 'package:deardiary/features/settings/widgets/switch_item.dart';
 import 'package:deardiary/features/settings/services/settings_manager.dart';
+import 'package:deardiary/shared/utils/navigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -91,6 +92,13 @@ Future<void> requestExactAlarmPermission() async {
                     title: 'Sabit Hatırlatıcı',
                     body: _reminderSentence,
                   );
+                  notificationService.handleNotificationAction('add_entry_action', () {
+                    NavigationService().navigateToAddEntry();
+                  });
+
+                  notificationService.handleNotificationAction('settings_action', () {
+                    NavigationService().navigateTo('/notifications');
+                  });
                 } else {
                   notificationService.cancelNotification(2);
                 }

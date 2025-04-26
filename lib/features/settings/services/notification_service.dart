@@ -61,27 +61,48 @@ class NotificationService extends ChangeNotifier {
     return scheduledDate;
   }
 
-  Future<void> showPinnedNotification({
-    required int id,
-    required String title,
-    required String body,
-  }) async {
-    await _flutterLocalNotificationsPlugin.show(
-      id,
-      title,
-      body,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'pinned_channel',
-          'Pinned Notification',
-          channelDescription: 'This channel is used for pinned notifications',
-          importance: Importance.high,
-          priority: Priority.high,
-          ongoing: true, // Sabit bildirim için
-        ),
+
+Future<void> showPinnedNotification({
+  required int id,
+  required String title,
+  required String body,
+}) async {
+  await _flutterLocalNotificationsPlugin.show(
+    id,
+    title,
+    body,
+    NotificationDetails(
+      android: AndroidNotificationDetails(
+        'pinned_channel',
+        'Pinned Notification',
+        channelDescription: 'This channel is used for pinned notifications',
+        importance: Importance.high,
+        priority: Priority.high,
+        ongoing: true, // Sabit bildirim için
+        actions: [
+          AndroidNotificationAction(
+            'add_entry_action', // Günlük ekleme eylemi
+            'Günlük Ekle',
+          ),
+          AndroidNotificationAction(
+            'settings_action', // Ayarlar eylemi
+            'Ayarlar',
+          ),
+        ],
       ),
-    );
+    ),
+  );
+}
+
+// Bildirim eylemlerini dinlemek için
+void handleNotificationAction(String actionId, Null Function() param1) {
+  if (actionId == 'add_entry_action') {
+    // Günlük ekleme sayfasına yönlendirin
+    // Örneğin, bir callback ile çağırabilirsiniz
+  } else if (actionId == 'settings_action') {
+    // Bildirim ayarları sayfasına yönlendirin
   }
+}
 
   Future<void> cancelNotification(int id) async {
     await _flutterLocalNotificationsPlugin.cancel(id);
