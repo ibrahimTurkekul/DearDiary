@@ -8,6 +8,7 @@ import 'package:deardiary/shared/utils/selection_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:provider/provider.dart';
+import 'package:timezone/data/latest.dart' as tz;
 import 'features/diary/providers/diary_provider.dart'; // DiaryProvider sınıfı
 import 'features/diary/hive/hive_boxes.dart';
 
@@ -19,18 +20,25 @@ Future<void> initializeApp() async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // NotificationService'i başlat
   final notificationService = NotificationService();
   await notificationService.initializeNotifications();
-  
+  tz.initializeTimeZones(); // Zaman dilimlerini başlat
   await initializeApp();
+
+  // ThemeService'i başlat ve JSON verilerini yükle
+  final themeService = ThemeService();
+  await themeService.loadThemes();
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => DiaryProvider()),
         ChangeNotifierProvider(create: (_) => SelectionManager()),
-        ChangeNotifierProvider(create: (_) => ThemeService()), 
-        ChangeNotifierProvider(create: (_) => NotificationService()), 
+        ChangeNotifierProvider(
+          create: (_) => themeService,
+        ), // Tema servisini sağlayıcıya ekledik
+        ChangeNotifierProvider(create: (_) => NotificationService()),
         Provider<SettingsRepository>(create: (_) => SettingsRepository()),
         ChangeNotifierProvider(
           create: (context) {
@@ -54,7 +62,9 @@ class MyApp extends StatelessWidget {
     final themeService = Provider.of<ThemeService>(context);
 
     return MaterialApp(
-      theme: ThemeData.light(), // Açık tema
+      theme: ThemeData(
+        primaryColor: themeService.primaryColor, // Dinamik ana renk
+      ), // Açık tema
       darkTheme: ThemeData.dark(), // Koyu tema
       themeMode: themeService.themeMode, // Dinamik tema modu
       debugShowCheckedModeBanner: false,

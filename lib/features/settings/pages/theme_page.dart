@@ -11,35 +11,26 @@ class ThemePage extends StatefulWidget {
 }
 
 class _ThemePageState extends State<ThemePage> {
-  final themes = [
-    {'name': 'Light', 'color': Colors.white},
-    {'name': 'Dark', 'color': Colors.black},
-    {'name': 'Blue', 'color': Colors.blue},
-    {'name': 'Red', 'color': Colors.red},
-    {'name': 'Green', 'color': Colors.green},
-    {'name': 'Purple', 'color': Colors.purple},
-    {'name': 'Orange', 'color': Colors.orange},
-    {'name': 'Pink', 'color': Colors.pink},
-    {'name': 'Yellow', 'color': Colors.yellow},
-    {'name': 'System Default', 'color': Colors.grey[400]},
-  ];
-
   late String selectedTheme;
 
   @override
   void initState() {
     super.initState();
     // Seçili temayı SettingsManager'dan yükle
-    final settingsManager = Provider.of<SettingsManager>(context, listen: false);
-    selectedTheme = settingsManager.settings?.theme ?? 'System Default'; // Varsayılan tema
+    final settingsManager = Provider.of<SettingsManager>(
+      context,
+      listen: false,
+    );
+    selectedTheme =
+        settingsManager.settings?.theme ?? 'System Default'; // Varsayılan tema
   }
 
   @override
   Widget build(BuildContext context) {
+    final themeService = Provider.of<ThemeService>(context);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Temalar'),
-      ),
+      appBar: AppBar(title: const Text('Temalar')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: GridView.builder(
@@ -48,34 +39,43 @@ class _ThemePageState extends State<ThemePage> {
             crossAxisSpacing: 5, // Sütunlar arası boşluk
             mainAxisSpacing: 16, // Satırlar arası boşluk
           ),
-          itemCount: themes.length,
+          itemCount: themeService.themeData.length,
           itemBuilder: (context, index) {
-            final theme = themes[index];
-            final isSelected = selectedTheme == theme['name'];
+            final themeName = themeService.themeData.keys.elementAt(index);
+            final themeDetails = themeService.themeData[themeName];
+            final isSelected = selectedTheme == themeName;
 
             return GestureDetector(
               onTap: () {
-                _showThemePreview(context, theme);
+                _showThemePreview(context, index);
               },
               child: Card(
-                color: theme['color'] as Color?,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  side: isSelected
-                      ? BorderSide(color: Colors.blue, width: 2)
-                      : BorderSide.none,
+                  side:
+                      isSelected
+                          ? BorderSide(
+                            color: themeDetails?['fabColor'],
+                            width: 2,
+                          )
+                          : BorderSide.none,
                 ),
                 elevation: 4,
-                child: Center(
-                  child: Text(
-                    theme['name'] as String,
-                    style: TextStyle(
-                      color: theme['color'] == Colors.black
-                          ? Colors.white
-                          : Colors.black,
-                      fontWeight: FontWeight.bold,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      themeDetails?['backgroundImage'],
+                      height: 50,
+                      width: 50,
+                      fit: BoxFit.cover,
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                    Text(
+                      themeName,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
                 ),
               ),
             );
@@ -85,50 +85,92 @@ class _ThemePageState extends State<ThemePage> {
     );
   }
 
-  void _showThemePreview(BuildContext context, Map<String, Object?> theme) {
+  void _showThemePreview(BuildContext context, int initialIndex) {
+    final themeService = Provider.of<ThemeService>(context, listen: false);
+
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text('${theme['name']} Önizleme'),
-          content: Container(
-            height: 200,
-            color: theme['color'] as Color?,
-            child: Center(
-              child: Text(
-                'Bu tema önizlemesi',
-                style: TextStyle(
-                  color: theme['color'] == Colors.black
-                      ? Colors.white
-                      : Colors.black,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+        return StatefulBuilder(
+          builder: (context, setState) {
+            int currentIndex = initialIndex;
+
+            void updatePreview(int newIndex) {
+              setState(() {
+                currentIndex = newIndex;
+              });
+            }
+
+            final themeName = themeService.themeData.keys.elementAt(
+              currentIndex,
+            );
+            final themeDetails = themeService.themeData[themeName];
+
+            return Scaffold(
+              backgroundColor: themeDetails?['primaryColor'],
+              appBar: AppBar(
+                backgroundColor: themeDetails?['fabColor'],
+                title: Text(themeName),
+              ),
+              body: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    themeDetails?['backgroundImage'],
+                    height: 200,
+                    width: 200,
+                    fit: BoxFit.cover,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: themeDetails?['fabColor'],
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        selectedTheme = themeName; // Seçilen temayı güncelle
+                        final settingsManager = Provider.of<SettingsManager>(
+                          context,
+                          listen: false,
+                        );
+                        settingsManager.updateSetting(
+                          'theme',
+                          themeName,
+                        ); // Temayı kaydet
+                        themeService.setThemeMode(themeName); // Temayı uygula
+                      });
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Temayı Seç'),
+                  ),
+                ],
+              ),
+              bottomNavigationBar: BottomAppBar(
+                color: themeDetails?['fabColor'],
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      color: Colors.white,
+                      onPressed:
+                          currentIndex > 0
+                              ? () => updatePreview(currentIndex - 1)
+                              : null,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.arrow_forward),
+                      color: Colors.white,
+                      onPressed:
+                          currentIndex < themeService.themeData.length - 1
+                              ? () => updatePreview(currentIndex + 1)
+                              : null,
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('İptal'),
-            ),
-            TextButton(
-              onPressed: () {
-                final selectedThemeName = theme['name'] as String;
-                setState(() {
-                  selectedTheme = selectedThemeName; // Seçilen temayı güncelle
-                  final settingsManager = Provider.of<SettingsManager>(context, listen: false);
-                  settingsManager.updateSetting('theme', selectedThemeName); // Temayı kaydet
-                  final themeService = Provider.of<ThemeService>(context, listen: false);
-                  themeService.setThemeMode(selectedThemeName); // Temayı uygula
-                });
-                Navigator.of(context).pop();
-              },
-              child: const Text('Uygula'),
-            ),
-          ],
+            );
+          },
         );
       },
     );

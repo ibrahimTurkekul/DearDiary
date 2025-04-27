@@ -1,0 +1,20 @@
+{
+    "Light": {
+      "themeMode": "light",
+      "backgroundImage": "assets/themes/light.png",
+      "primaryColor": "#FFFFFF",
+      "fabColor": "#0000FF"
+    },
+    "Dark": {
+      "themeMode": "dark",
+      "backgroundImage": "assets/themes/dark.png",
+      "primaryColor": "#000000",
+      "fabColor": "#FF0000"
+    },
+    "Blue": {
+      "themeMode": "light",
+      "backgroundImage": "assets/themes/blue.png",
+      "primaryColor": "#ADD8E6",
+      "fabColor": "#4B0082"
+    }
+  }

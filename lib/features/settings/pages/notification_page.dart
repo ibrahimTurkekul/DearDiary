@@ -2,7 +2,6 @@ import 'package:android_intent_plus/android_intent.dart';
 import 'package:deardiary/features/settings/services/notification_service.dart';
 import 'package:deardiary/features/settings/widgets/switch_item.dart';
 import 'package:deardiary/features/settings/services/settings_manager.dart';
-import 'package:deardiary/shared/utils/navigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -19,12 +18,25 @@ class _NotificationPageState extends State<NotificationPage> {
   late TimeOfDay _reminderTime;
   late String _reminderSentence;
 
-Future<void> requestExactAlarmPermission() async {
-  final intent = AndroidIntent(
-    action: 'android.settings.REQUEST_SCHEDULE_EXACT_ALARM',
-  );
-  await intent.launch();
-}
+  Future<void> requestExactAlarmPermission() async {
+    final intent = AndroidIntent(
+      action: 'android.settings.REQUEST_SCHEDULE_EXACT_ALARM',
+    );
+    await intent.launch();
+  }
+
+  Future<void> openNotificationSettings() async {
+    // Uygulamanın paket adını dinamik olarak almak için
+    final packageName = 'com.example.deardiary'; // Paket adınızı buraya ekleyin
+
+    final intent = AndroidIntent(
+      action: 'android.settings.APP_NOTIFICATION_SETTINGS',
+      arguments: {
+        'android.provider.extra.APP_PACKAGE': packageName,
+      },
+    );
+    await intent.launch();
+  }
 
   @override
   void initState() {
@@ -33,16 +45,15 @@ Future<void> requestExactAlarmPermission() async {
 
     // Ayarları yükle
     _dailyReminderEnabled = settingsManager.dailyReminderEnabled;
-    _pinnedNotificationEnabled = settingsManager.pinnedNotificationEnabled; // SettingsManager'dan çekildi
+    _pinnedNotificationEnabled = settingsManager.pinnedNotificationEnabled;
     _reminderTime = settingsManager.reminderTime;
     _reminderSentence = settingsManager.reminderSentence;
-
-    
   }
 
   @override
   Widget build(BuildContext context) {
-    final notificationService = Provider.of<NotificationService>(context, listen: false);
+    final notificationService =
+        Provider.of<NotificationService>(context, listen: false);
     final settingsManager = Provider.of<SettingsManager>(context, listen: false);
 
     return Scaffold(
@@ -91,16 +102,9 @@ Future<void> requestExactAlarmPermission() async {
                 if (value) {
                   notificationService.showPinnedNotification(
                     id: 2,
-                    title: 'Sabit Hatırlatıcı',
-                    body: _reminderSentence,
+                    title: 'DearDiary',
+                    body: 'Günlüklerinizi unutmayın!',
                   );
-                  notificationService.handleNotificationAction('add_entry_action', () {
-                    NavigationService().navigateToAddEntry();
-                  });
-
-                  notificationService.handleNotificationAction('settings_action', () {
-                    NavigationService().navigateTo('/notifications');
-                  });
                 } else {
                   notificationService.cancelNotification(2);
                 }
@@ -120,7 +124,7 @@ Future<void> requestExactAlarmPermission() async {
 
                   // Ayarı kaydet
                   settingsManager.updateSetting('reminderTime', '${value.hour}:${value.minute}');
- 
+
                   if (_dailyReminderEnabled) {
                     notificationService.showDailyReminderNotification(
                       id: 1,
@@ -183,7 +187,20 @@ Future<void> requestExactAlarmPermission() async {
               title: const Text("Tam Zamanlı Alarm İzni İste"),
               subtitle: const Text("Tam zamanlı alarm izni istemek için tıklayın."),
               onTap: () async {
-                await requestExactAlarmPermission();
+                notificationService.showDailyReminderNotification(
+                    id: 1,
+                    title: 'Hatırlatıcı',
+                    body: _reminderSentence,
+                    time: TimeOfDay.now(), // Şu anki zamanı kullan
+                  );
+                  print(_reminderTime);
+              },
+            ),
+            ListTile(
+              title: const Text("Bildirim Ayarlarını Aç"),
+              subtitle: const Text("Bildirim izinleri için ayarları açın."),
+              onTap: () async {
+                await openNotificationSettings();
               },
             ),
           ],

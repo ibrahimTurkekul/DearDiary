@@ -8,6 +8,7 @@ import '../widgets/year_grouped_diary_list.dart';
 import '../../../shared/utils/navigation_service.dart';
 import '../../../shared/utils/selection_manager.dart';
 import '../../../shared/utils/confirmation_dialog.dart';
+import '../../settings/services/theme_service.dart';
 
 class DiaryHomePage extends StatelessWidget {
   const DiaryHomePage({super.key});
@@ -15,38 +16,46 @@ class DiaryHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selectionManager = Provider.of<SelectionManager>(context);
+    final themeService = Provider.of<ThemeService>(context);
 
     return Scaffold(
       drawer: const _DiaryDrawer(),
-      appBar: selectionManager.isSelectionMode
-          ? _buildSelectionAppBar(selectionManager, context)
-          : const _DiaryAppBar(),
+      appBar:
+          selectionManager.isSelectionMode
+              ? _buildSelectionAppBar(selectionManager, context)
+              : const _DiaryAppBar(),
       body: Consumer<DiaryProvider>(
         builder: (context, provider, child) {
           final groupedEntries = provider.groupedEntries;
-          return _buildBody(groupedEntries, provider, selectionManager, context);
+          return _buildBody(
+            groupedEntries,
+            provider,
+            selectionManager,
+            themeService,
+            context,
+          );
         },
       ),
       bottomNavigationBar: const _DiaryBottomNavigationBar(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: RippleAnimation(
         color: Colors.grey,
-            delay: const Duration(milliseconds: 300),
-            repeat: true,
-            minRadius: 20,
-            maxRadius: 40,
-            ripplesCount: 1,
-            duration: const Duration(milliseconds: 8 * 300),
+        delay: const Duration(milliseconds: 300),
+        repeat: true,
+        minRadius: 20,
+        maxRadius: 40,
+        ripplesCount: 1,
+        duration: const Duration(milliseconds: 8 * 300),
         child: FloatingActionButton(
-        onPressed: () {
-          NavigationService().navigateToAddEntry();
-        },
-        backgroundColor: Colors.purple,
-        shape: const CircleBorder(),
-        child: const Icon(Icons.add),
+          onPressed: () {
+            NavigationService().navigateToAddEntry();
+          },
+          backgroundColor:
+              themeService.fabColor, // FAB buton rengi temaya bağlı
+          shape: const CircleBorder(),
+          child: const Icon(Icons.add),
+        ),
       ),
-
-      ), 
     );
   }
 
@@ -85,7 +94,9 @@ class DiaryHomePage extends StatelessWidget {
                 SnackBar(
                   content: const Text("Günlükler silindi"),
                   duration: const Duration(seconds: 2),
-                  behavior: SnackBarBehavior.floating, // Snackbar yukarıda "float" edecek
+                  behavior:
+                      SnackBarBehavior
+                          .floating, // Snackbar yukarıda "float" edecek
                   margin: const EdgeInsets.all(16), // Kenarlardan boşluk bırak
                 ),
               );
@@ -100,33 +111,64 @@ class DiaryHomePage extends StatelessWidget {
     Map<int, List<DiaryEntry>> groupedEntries,
     DiaryProvider provider,
     SelectionManager selectionManager,
+    ThemeService themeService,
     BuildContext context,
   ) {
     if (groupedEntries.isEmpty) {
-      return const Center(
-        child: Text(
-          'Henüz hiç günlük eklenmedi.',
-          style: TextStyle(fontSize: 18),
-        ),
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            flex: 2,
+            child: Center(
+              child: Image.asset(
+                'assets/images/empty_state.png',
+                height: 200,
+                width: 200,
+                fit: BoxFit.cover,
+              ), // Ortada gösterilecek resim
+            ),
+          ),
+          Image.asset(
+            themeService.backgroundImage, // Tema resmi en altta
+            height: 100,
+            fit: BoxFit.cover,
+          ),
+        ],
       );
     }
 
-    return YearGroupedDiaryList(
-      groupedEntries: groupedEntries,
-      onTap: (entry) {
-        if (selectionManager.isSelectionMode) {
-          selectionManager.toggleEntrySelection(entry);
-        } else {
-          EntryActions.handleTap(entry, provider);
-        }
-      },
-      onLongPress: (entry) {
-        final selectionManager = Provider.of<SelectionManager>(context, listen: false);
-        if (!selectionManager.isSelectionMode) {
-          selectionManager.toggleSelectionMode(); // Seçim moduna geç
-        }
-        selectionManager.selectEntry(entry); // İlk basılan günlüğü seç
-      },
+    return Column(
+      children: [
+        Image.asset(
+          themeService.backgroundImage, // Tema resmi en üstte
+          height: MediaQuery.of(context).size.height / 3, // Sayfanın 3'te 1'i
+          width: double.infinity,
+          fit: BoxFit.cover,
+        ),
+        Expanded(
+          child: YearGroupedDiaryList(
+            groupedEntries: groupedEntries,
+            onTap: (entry) {
+              if (selectionManager.isSelectionMode) {
+                selectionManager.toggleEntrySelection(entry);
+              } else {
+                EntryActions.handleTap(entry, provider);
+              }
+            },
+            onLongPress: (entry) {
+              final selectionManager = Provider.of<SelectionManager>(
+                context,
+                listen: false,
+              );
+              if (!selectionManager.isSelectionMode) {
+                selectionManager.toggleSelectionMode(); // Seçim moduna geç
+              }
+              selectionManager.selectEntry(entry); // İlk basılan günlüğü seç
+            },
+          ),
+        ),
+      ],
     );
   }
 }
@@ -147,7 +189,6 @@ class _DiaryDrawer extends StatelessWidget {
               style: TextStyle(color: Colors.white, fontSize: 24),
             ),
           ),
-          
           ListTile(
             leading: const Icon(Icons.palette),
             title: const Text('Tema'),
