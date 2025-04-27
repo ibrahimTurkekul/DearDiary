@@ -131,7 +131,8 @@ class DiaryHomePage extends StatelessWidget {
           ),
           Image.asset(
             themeService.backgroundImage, // Tema resmi en altta
-            height: 100,
+            height: MediaQuery.of(context).size.height / 3, // Sayfanın 3'te 1'i
+            width: double.infinity,
             fit: BoxFit.cover,
           ),
         ],
