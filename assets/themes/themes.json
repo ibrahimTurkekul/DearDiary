@@ -2,7 +2,7 @@
     "Light": {
       "themeMode": "light",
       "backgroundImage": "assets/themes/light.png",
-      "primaryColor": "#FFFFFF",
+      "primaryColor": "#CCF2FF",
       "fabColor": "#0000FF"
     },
     "Dark": {

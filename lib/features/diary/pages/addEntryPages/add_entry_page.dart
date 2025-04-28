@@ -29,7 +29,10 @@ class _AddEntryPageState extends State<AddEntryPage> {
     super.initState();
     selectedDate = widget.date ?? DateTime.now();
     // Sayfa yüklendiğinde popup'ı göster
-    final settingsManager = Provider.of<SettingsManager>(context, listen: false);
+    final settingsManager = Provider.of<SettingsManager>(
+      context,
+      listen: false,
+    );
     if (settingsManager.skipMoodSelection) {
       // Eğer Ruh Hali Seçimini Atla aktifse, varsayılan ruh halini seç
       selectedMood = "😊"; // Varsayılan ruh hali emojisi
@@ -67,12 +70,14 @@ class _AddEntryPageState extends State<AddEntryPage> {
   }
 
   void _saveEntry() {
-    final title = titleController.text.trim().isNotEmpty
-        ? titleController.text.trim()
-        : "Başlıksız"; // Varsayılan başlık
-    final content = contentController.text.trim().isNotEmpty
-        ? contentController.text.trim()
-        : "İçerik yok"; // Varsayılan içerik
+    final title =
+        titleController.text.trim().isNotEmpty
+            ? titleController.text.trim()
+            : "Başlıksız"; // Varsayılan başlık
+    final content =
+        contentController.text.trim().isNotEmpty
+            ? contentController.text.trim()
+            : "İçerik yok"; // Varsayılan içerik
 
     final newEntry = DiaryEntry(
       title: title,
@@ -109,21 +114,22 @@ class _AddEntryPageState extends State<AddEntryPage> {
         title: const Text('Yeni Günlük'),
         actions: [
           TextButton(
-            onPressed: () async{
+            onPressed: () async {
               _saveEntry();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text("Günlük Kaydedildi"),
-                duration: const Duration(seconds: 2),
-                behavior: SnackBarBehavior.floating, // Snackbar yukarıda "float" edecek
-                margin: const EdgeInsets.all(16), // Kenarlardan boşluk bırak
-              ),
-            );}, 
-            child: const Text(
-              "Kaydet",
-              style: TextStyle(color: Colors.black),
-            ),
-          )
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text("Günlük Kaydedildi"),
+                  duration: const Duration(seconds: 2),
+                  backgroundColor: Colors.teal,
+                  behavior:
+                      SnackBarBehavior
+                          .floating, // Snackbar yukarıda "float" edecek
+                  margin: const EdgeInsets.all(16), // Kenarlardan boşluk bırak
+                ),
+              );
+            },
+            child: const Text("Kaydet", style: TextStyle(color: Colors.black)),
+          ),
         ],
       ),
       body: Column(
@@ -172,10 +178,16 @@ class _AddEntryPageState extends State<AddEntryPage> {
                     controller: titleController,
                     decoration: const InputDecoration(
                       hintText: 'Başlık giriniz',
-                      hintStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                      hintStyle: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
                       border: InputBorder.none,
                     ),
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
                   ),
                   Expanded(
                     child: TextField(

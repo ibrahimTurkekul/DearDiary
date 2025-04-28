@@ -63,7 +63,24 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       theme: ThemeData(
-        primaryColor: themeService.primaryColor, // Dinamik ana renk
+        primaryColor: themeService.primaryColor,
+        scaffoldBackgroundColor:
+            themeService.primaryColor, // Scaffold arka planı
+        appBarTheme: AppBarTheme(backgroundColor: themeService.primaryColor),
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          backgroundColor: themeService.fabColor, // FAB rengi
+        ),
+        cardTheme: CardTheme(
+          color: themeService.primaryColor, // Kart rengi
+        ),
+        textTheme: TextTheme(
+          bodyLarge: TextStyle(
+            color:
+                themeService.primaryColor.computeLuminance() > 0.5
+                    ? Colors.black
+                    : Colors.white, // Yazı rengini otomatik ayarla
+          ),
+        ), // Dinamik ana renk
       ), // Açık tema
       darkTheme: ThemeData.dark(), // Koyu tema
       themeMode: themeService.themeMode, // Dinamik tema modu

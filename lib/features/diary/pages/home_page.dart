@@ -42,8 +42,8 @@ class DiaryHomePage extends StatelessWidget {
         color: Colors.grey,
         delay: const Duration(milliseconds: 300),
         repeat: true,
-        minRadius: 20,
-        maxRadius: 40,
+        minRadius: 30,
+        maxRadius: 30,
         ripplesCount: 1,
         duration: const Duration(milliseconds: 8 * 300),
         child: FloatingActionButton(
@@ -94,6 +94,7 @@ class DiaryHomePage extends StatelessWidget {
                 SnackBar(
                   content: const Text("Günlükler silindi"),
                   duration: const Duration(seconds: 2),
+                  backgroundColor: Colors.teal,
                   behavior:
                       SnackBarBehavior
                           .floating, // Snackbar yukarıda "float" edecek
