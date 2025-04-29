@@ -24,7 +24,9 @@ class DiaryHomePage extends StatelessWidget {
           selectionManager.isSelectionMode
               ? _buildSelectionAppBar(selectionManager, context)
               : const _DiaryAppBar(),
-      body: Consumer<DiaryProvider>(
+      body: Stack(
+        children: [
+          Consumer<DiaryProvider>(
         builder: (context, provider, child) {
           final groupedEntries = provider.groupedEntries;
           return _buildBody(
@@ -36,7 +38,14 @@ class DiaryHomePage extends StatelessWidget {
           );
         },
       ),
-      bottomNavigationBar: const _DiaryBottomNavigationBar(),
+      Positioned(
+            bottom: 16, // Alt kısımdan boşluk
+            left: 0,
+            right: 0,
+            child: _CustomFloatingButtons(themeService: themeService),
+          ),
+      ],) 
+      /*bottomNavigationBar: const _DiaryBottomNavigationBar(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: RippleAnimation(
         color: Colors.grey,
@@ -55,7 +64,7 @@ class DiaryHomePage extends StatelessWidget {
           shape: const CircleBorder(),
           child: const Icon(Icons.add),
         ),
-      ),
+      ),*/
     );
   }
 
@@ -309,6 +318,56 @@ class _DiaryBottomNavigationBar extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+class _CustomFloatingButtons extends StatelessWidget {
+  final ThemeService themeService;
+
+  const _CustomFloatingButtons({required this.themeService});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        FloatingActionButton(
+          heroTag: 'calendar_button',
+          backgroundColor: Colors.grey[400]?.withValues(alpha: 0.2),
+          shape: const CircleBorder(),
+          onPressed: () {
+            NavigationService().navigateTo('/calendar');
+          },
+          child: const Icon(Icons.calendar_today),
+        ),
+        RippleAnimation(
+          color: Colors.grey,
+          delay: const Duration(milliseconds: 300),
+          repeat: true,
+          minRadius: 30,
+          maxRadius: 30,
+          ripplesCount: 1,
+          duration: const Duration(milliseconds: 8 * 300),
+          child: FloatingActionButton(
+            onPressed: () {
+              NavigationService().navigateToAddEntry();
+            },
+            backgroundColor:
+                themeService.fabColor, // FAB buton rengi temaya bağlı
+            shape: const CircleBorder(),
+            child: const Icon(Icons.add),
+          ),
+        ),
+        FloatingActionButton(
+          heroTag: 'profile_button',
+          backgroundColor: Colors.grey[400]?.withValues(alpha: 0.2),
+          shape: const CircleBorder(),
+          onPressed: () {
+            // Profil ekranına geçiş
+          },
+          child: const Icon(Icons.person),
+        ),
+      ],
     );
   }
 }

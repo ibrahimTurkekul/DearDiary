@@ -66,7 +66,7 @@ class MyApp extends StatelessWidget {
         primaryColor: themeService.primaryColor,
         scaffoldBackgroundColor:
             themeService.primaryColor, // Scaffold arka planı
-        appBarTheme: AppBarTheme(backgroundColor: themeService.primaryColor),
+        appBarTheme: AppBarTheme(backgroundColor: Colors.transparent),
         floatingActionButtonTheme: FloatingActionButtonThemeData(
           backgroundColor: themeService.fabColor, // FAB rengi
         ),
