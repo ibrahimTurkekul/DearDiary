@@ -1,14 +1,13 @@
-import 'package:deardiary/features/diary/models/diary_entry.dart';
+import 'package:deardiary/features/diary/widgets/year_grouped_diary_list.dart';
+import 'package:deardiary/shared/utils/confirmation_dialog.dart';
 import 'package:deardiary/shared/utils/entry_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:simple_ripple_animation/simple_ripple_animation.dart';
-import '../providers/diary_provider.dart';
-import '../widgets/year_grouped_diary_list.dart';
 import '../../../shared/utils/navigation_service.dart';
 import '../../../shared/utils/selection_manager.dart';
-import '../../../shared/utils/confirmation_dialog.dart';
 import '../../settings/services/theme_service.dart';
+import '../providers/diary_provider.dart';
 
 class DiaryHomePage extends StatelessWidget {
   const DiaryHomePage({super.key});
@@ -17,169 +16,133 @@ class DiaryHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final selectionManager = Provider.of<SelectionManager>(context);
     final themeService = Provider.of<ThemeService>(context);
-
+    
     return Scaffold(
-      drawer: const _DiaryDrawer(),
-      appBar:
-          selectionManager.isSelectionMode
-              ? _buildSelectionAppBar(selectionManager, context)
-              : const _DiaryAppBar(),
+      extendBodyBehindAppBar: true, // AppBar'ı arka plana taşır
+      drawer: const _DiaryDrawer(), // Tek bir drawer tanımı
       body: Stack(
         children: [
-          Consumer<DiaryProvider>(
-        builder: (context, provider, child) {
-          final groupedEntries = provider.groupedEntries;
-          return _buildBody(
-            groupedEntries,
-            provider,
-            selectionManager,
-            themeService,
-            context,
-          );
-        },
-      ),
-      Positioned(
+          // Günlük Listesi ve Arka Plan
+          CustomScrollView(
+            slivers: [
+              // Dinamik SliverAppBar
+              SliverAppBar(
+                expandedHeight: MediaQuery.of(context).size.height / 3, // Resim yüksekliği
+                floating: false,
+                pinned: true, // Kaydırıldığında AppBar sabit kalır
+                backgroundColor: Colors.blueGrey, // AppBar arka plan rengi
+                elevation: 0.0,
+                leading: selectionManager.isSelectionMode
+                    ? IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: selectionManager.clearSelections, // Seçim modunu iptal et
+                      )
+                    : Builder(
+                        builder: (context) {
+                          return IconButton(
+                            icon: const Icon(Icons.menu), // Drawer açma ikonu
+                            onPressed: () {
+                              Scaffold.of(context).openDrawer(); // Drawer'ı açar
+                            },
+                          );
+                        },
+                      ),
+                title: selectionManager.isSelectionMode
+                    ? Text('${selectionManager.selectedEntries.length} Seçildi')
+                    : const Text('DearDiary'),
+                actions: selectionManager.isSelectionMode
+                    ? [
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () async {
+                            // Silme işlemi için onay penceresi
+                            final confirmed = await showConfirmationDialog(
+                              context: context,
+                              title: "Günlükleri Sil",
+                              content: "Seçili günlükleri silmek istediğinize emin misiniz?",
+                              confirmText: "Sil",
+                              cancelText: "İptal",
+                            );
+                            if (confirmed == true) {
+                              final provider = Provider.of<DiaryProvider>(context, listen: false);
+                              for (final entry in selectionManager.selectedEntries) {
+                                provider.deleteEntry(entry); // Günlük silme işlemi
+                              }
+                              selectionManager.clearSelections(); // Seçim modunu temizle
+
+                              // Snackbar ile kullanıcıyı bilgilendir
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text("Günlükler silindi"),
+                                  duration: const Duration(seconds: 2),
+                                  backgroundColor: Colors.teal,
+                                  behavior: SnackBarBehavior.floating, // Snackbar yukarıda "float" edecek
+                                  margin: const EdgeInsets.all(16), // Kenarlardan boşluk bırak
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                      ]
+                    : [
+                        IconButton(
+                          icon: const Icon(Icons.search),
+                          onPressed: () {
+                            NavigationService().navigateTo('/search');
+                          },
+                        ),
+                      ],
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Image.asset(
+                    themeService.backgroundImage, // Temadan gelen resim
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              // Günlük Listesi
+              Consumer<DiaryProvider>(
+                builder: (context, provider, child) {
+                  final groupedEntries = provider.groupedEntries; // Günlükler Map yapısı
+                  if (groupedEntries.isEmpty) {
+                    // Eğer günlük yoksa boş bir mesaj göster
+                    return SliverFillRemaining(
+                      child: Center(
+                        child: Text(
+                          'Henüz hiç günlük eklenmedi.',
+                          style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                        ),
+                      ),
+                    );
+                  }
+                  return YearGroupedDiaryList(
+                    groupedEntries: groupedEntries,
+                    onTap: (entry) {
+                      if (selectionManager.isSelectionMode) {
+                        selectionManager.toggleEntrySelection(entry);
+                      } else {
+                        EntryActions.handleTap(entry, provider);
+                      }
+                    },
+                    onLongPress: (entry) {
+                      if (!selectionManager.isSelectionMode) {
+                        selectionManager.toggleSelectionMode(); // Seçim moduna geç
+                      }
+                      selectionManager.selectEntry(entry); // İlk basılan günlüğü seç
+                    },
+                  );
+                },
+              ),
+            ],
+          ),
+          // Alt Kısımda Sabit FAB Butonlar
+          Positioned(
             bottom: 16, // Alt kısımdan boşluk
             left: 0,
             right: 0,
             child: _CustomFloatingButtons(themeService: themeService),
           ),
-      ],) 
-      /*bottomNavigationBar: const _DiaryBottomNavigationBar(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: RippleAnimation(
-        color: Colors.grey,
-        delay: const Duration(milliseconds: 300),
-        repeat: true,
-        minRadius: 30,
-        maxRadius: 30,
-        ripplesCount: 1,
-        duration: const Duration(milliseconds: 8 * 300),
-        child: FloatingActionButton(
-          onPressed: () {
-            NavigationService().navigateToAddEntry();
-          },
-          backgroundColor:
-              themeService.fabColor, // FAB buton rengi temaya bağlı
-          shape: const CircleBorder(),
-          child: const Icon(Icons.add),
-        ),
-      ),*/
-    );
-  }
-
-  AppBar _buildSelectionAppBar(
-    SelectionManager selectionManager,
-    BuildContext context,
-  ) {
-    final provider = Provider.of<DiaryProvider>(context, listen: false);
-
-    return AppBar(
-      title: Text('${selectionManager.selectedEntries.length} Seçildi'),
-      backgroundColor: Colors.blueGrey,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: selectionManager.clearSelections,
-      ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.delete),
-          onPressed: () async {
-            final confirmed = await showConfirmationDialog(
-              context: context,
-              title: "Günlükleri Sil",
-              content: "Seçili günlükleri silmek istediğinize emin misiniz?",
-              confirmText: "Sil",
-              cancelText: "İptal",
-            );
-            if (confirmed == true) {
-              for (final entry in selectionManager.selectedEntries) {
-                provider.deleteEntry(entry);
-              }
-              selectionManager.clearSelections();
-
-              // Günlükler silindikten sonra Snackbar gösteriliyor
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text("Günlükler silindi"),
-                  duration: const Duration(seconds: 2),
-                  backgroundColor: Colors.teal,
-                  behavior:
-                      SnackBarBehavior
-                          .floating, // Snackbar yukarıda "float" edecek
-                  margin: const EdgeInsets.all(16), // Kenarlardan boşluk bırak
-                ),
-              );
-            }
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBody(
-    Map<int, List<DiaryEntry>> groupedEntries,
-    DiaryProvider provider,
-    SelectionManager selectionManager,
-    ThemeService themeService,
-    BuildContext context,
-  ) {
-    if (groupedEntries.isEmpty) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            flex: 2,
-            child: Center(
-              child: Image.asset(
-                'assets/images/empty_state.png',
-                height: 200,
-                width: 200,
-                fit: BoxFit.cover,
-              ), // Ortada gösterilecek resim
-            ),
-          ),
-          Image.asset(
-            themeService.backgroundImage, // Tema resmi en altta
-            height: MediaQuery.of(context).size.height / 3, // Sayfanın 3'te 1'i
-            width: double.infinity,
-            fit: BoxFit.cover,
-          ),
         ],
-      );
-    }
-
-    return Column(
-      children: [
-        Image.asset(
-          themeService.backgroundImage, // Tema resmi en üstte
-          height: MediaQuery.of(context).size.height / 3, // Sayfanın 3'te 1'i
-          width: double.infinity,
-          fit: BoxFit.cover,
-        ),
-        Expanded(
-          child: YearGroupedDiaryList(
-            groupedEntries: groupedEntries,
-            onTap: (entry) {
-              if (selectionManager.isSelectionMode) {
-                selectionManager.toggleEntrySelection(entry);
-              } else {
-                EntryActions.handleTap(entry, provider);
-              }
-            },
-            onLongPress: (entry) {
-              final selectionManager = Provider.of<SelectionManager>(
-                context,
-                listen: false,
-              );
-              if (!selectionManager.isSelectionMode) {
-                selectionManager.toggleSelectionMode(); // Seçim moduna geç
-              }
-              selectionManager.selectEntry(entry); // İlk basılan günlüğü seç
-            },
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -204,7 +167,6 @@ class _DiaryDrawer extends StatelessWidget {
             leading: const Icon(Icons.palette),
             title: const Text('Tema'),
             onTap: () {
-              // Tema Seçenekleri ekranına geçiş
               NavigationService().navigateTo('/theme');
             },
           ),
@@ -212,51 +174,38 @@ class _DiaryDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.lock),
             title: const Text('Günlük Kilidi'),
-            onTap: () {
-              // Kilidi ayarlama ekranına geçiş
-            },
+            onTap: () {},
           ),
           ListTile(
             leading: const Icon(Icons.backup),
             title: const Text('Yedekle ve Geri Yükle'),
-            onTap: () {
-              // Yedekleme ekranına geçiş
-            },
+            onTap: () {},
           ),
           ListTile(
             leading: const Icon(Icons.import_export),
             title: const Text('İçe ve Dışa Aktar'),
-            onTap: () {
-              // içe ve dışa aktarma ekranına geçiş
-            },
+            onTap: () {},
           ),
           Divider(height: 30, color: Colors.grey[300]),
           ListTile(
             leading: const Icon(Icons.favorite),
             title: const Text('Bağış Yap'),
-            onTap: () {
-              // Bağış ekranına geçiş
-            },
+            onTap: () {},
           ),
           ListTile(
             leading: const Icon(Icons.share),
             title: const Text('Uygulamayı Paylaş'),
-            onTap: () {
-              // Uygulama paylaşma ekranına geçiş
-            },
+            onTap: () {},
           ),
           ListTile(
             leading: const Icon(Icons.help),
             title: const Text('FAQ'),
-            onTap: () {
-              // Sık sorulan sorular ekranına geçiş
-            },
+            onTap: () {},
           ),
           ListTile(
             leading: const Icon(Icons.settings),
             title: const Text('Ayarlar'),
             onTap: () {
-              // Ayarlar ekranına geçiş
               NavigationService().navigateTo('/settings');
             },
           ),
@@ -266,61 +215,7 @@ class _DiaryDrawer extends StatelessWidget {
   }
 }
 
-// AppBar için ayrı bir widget
-class _DiaryAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const _DiaryAppBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      title: const Text('DearDiary'),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.search),
-          onPressed: () {
-            // Arama işlemi
-            NavigationService().navigateTo('/search');
-          },
-        ),
-      ],
-    );
-  }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-}
-
-// BottomNavigationBar için ayrı bir widget
-class _DiaryBottomNavigationBar extends StatelessWidget {
-  const _DiaryBottomNavigationBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return BottomAppBar(
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 6,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.calendar_today),
-            onPressed: () {
-              NavigationService().navigateTo('/calendar');
-              // Takvim ekranına geçiş
-            },
-          ),
-          const SizedBox(width: 40), // FAB boşluğu
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () {
-              // Profil ekranına geçiş
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
+// Alt Kısımda Sabit FAB Butonları
 class _CustomFloatingButtons extends StatelessWidget {
   final ThemeService themeService;
 
@@ -333,12 +228,13 @@ class _CustomFloatingButtons extends StatelessWidget {
       children: [
         FloatingActionButton(
           heroTag: 'calendar_button',
-          backgroundColor: Colors.grey[400]?.withValues(alpha: 0.2),
+          mini: true,
+          backgroundColor: const Color(0x33111111), // Düz transparan gri
           shape: const CircleBorder(),
           onPressed: () {
             NavigationService().navigateTo('/calendar');
           },
-          child: const Icon(Icons.calendar_today),
+          child: const Icon(Icons.calendar_month, size: 18.0),
         ),
         RippleAnimation(
           color: Colors.grey,
@@ -352,20 +248,21 @@ class _CustomFloatingButtons extends StatelessWidget {
             onPressed: () {
               NavigationService().navigateToAddEntry();
             },
-            backgroundColor:
-                themeService.fabColor, // FAB buton rengi temaya bağlı
+            backgroundColor: themeService.fabColor, // FAB buton rengi temaya bağlı
+            foregroundColor: Colors.white,
             shape: const CircleBorder(),
             child: const Icon(Icons.add),
           ),
         ),
         FloatingActionButton(
           heroTag: 'profile_button',
-          backgroundColor: Colors.grey[400]?.withValues(alpha: 0.2),
+          mini: true,
+          backgroundColor: const Color(0x33111111), // Düz transparan gri
           shape: const CircleBorder(),
           onPressed: () {
             // Profil ekranına geçiş
           },
-          child: const Icon(Icons.person),
+          child: const Icon(Icons.person, size: 18.0),
         ),
       ],
     );
