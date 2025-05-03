@@ -21,67 +21,66 @@ class YearGroupedDiaryList extends StatelessWidget {
   Widget build(BuildContext context) {
     // Yılları ters sıralıyoruz (En yeni yıl üstte)
     final years = groupedEntries.keys.toList()..sort((a, b) => b.compareTo(a));
-
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          // Yıl bilgisi
-          if (index >= years.length) return null;
-          final year = years[index];
-          final entries = List.from(groupedEntries[year]!)..sort((a, b) => b.date.compareTo(a.date));
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 10.0, left: 10.0, bottom: 5.0),
-                child: Text(
-                  '$year',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.purple,
-                  ),
+    final themeService = Provider.of<ThemeService>(context);
+    return ListView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      itemCount: years.length,
+      itemBuilder: (context, yearIndex) {
+        final year = years[yearIndex];
+        // Her yılın günlüklerini ters sıralıyoruz (En yeni günlük üstte)
+        final entries = List.from(groupedEntries[year]!)..sort((a, b) => b.date.compareTo(a.date));
+    
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 150.0, left: 10.0,bottom: BorderSide.strokeAlignCenter),
+              child: Text(
+                '$year',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.purple,
                 ),
               ),
-              // Günlük kartlarını oluştur
-              ...entries.map((entry) {
-                return Selector<SelectionManager, bool>(
-                  selector: (_, selectionManager) => selectionManager.selectedEntries.contains(entry),
-                  builder: (context, isSelected, child) {
-                    return GestureDetector(
-                      onTap: () {
-                        final selectionManager = Provider.of<SelectionManager>(context, listen: false);
-                        if (selectionManager.isSelectionMode) {
-                          selectionManager.toggleEntrySelection(entry);
-                        } else {
-                          onTap(entry);
-                        }
-                      },
-                      onLongPress: () {
-                        final selectionManager = Provider.of<SelectionManager>(context, listen: false);
-                        if (!selectionManager.isSelectionMode) {
-                          selectionManager.toggleSelectionMode();
-                        }
+            ),
+            // Günlükleri map ile dönüyoruz
+            ...entries.map((entry) {
+              return Selector<SelectionManager, bool>(
+                selector: (_, selectionManager) => selectionManager.selectedEntries.contains(entry),
+                builder: (context, isSelected, child) {
+                  return GestureDetector(
+                    onTap: () {
+                      final selectionManager = Provider.of<SelectionManager>(context, listen: false);
+                      if (selectionManager.isSelectionMode) {
                         selectionManager.toggleEntrySelection(entry);
-                        onLongPress(entry);
-                      },
-                      child: Container(
-                        color: isSelected ? Colors.blue.withOpacity(0.2) : Colors.transparent,
-                        child: DiaryEntryCard(
-                          entry: entry,
-                          onTap: () => onTap(entry),
-                        ),
+                      } else {
+                        onTap(entry);
+                      }
+                    },
+                    onLongPress: () {
+                      final selectionManager = Provider.of<SelectionManager>(context, listen: false);
+                      if (!selectionManager.isSelectionMode) {
+                        selectionManager.toggleSelectionMode();
+                      }
+                      selectionManager.toggleEntrySelection(entry);
+                      onLongPress(entry);
+                    },
+                    child: Container(
+                      color: isSelected ? Colors.blue.withOpacity(0.2) : Colors.transparent,
+                      child: DiaryEntryCard(
+                        entry: entry,
+                        onTap: () => onTap(entry),
                       ),
-                    );
-                  },
-                );
-              }),
-            ],
-          );
-        },
-        childCount: groupedEntries.keys.length,
-      ),
+                    ),
+                  );
+                },
+              );
+            }),
+          ],
+        );
+      },
     );
   }
 }
