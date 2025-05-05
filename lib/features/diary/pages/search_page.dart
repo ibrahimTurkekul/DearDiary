@@ -17,6 +17,7 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<DiaryProvider>(context, listen: false);
+    final navigationService = Provider.of<NavigationService>(context, listen: false);
     final filteredEntries = _searchQuery.isEmpty
         ? []
         : provider.entries.where((entry) {
@@ -69,7 +70,7 @@ class _SearchPageState extends State<SearchPage> {
                         entry: entry,
                         onTap: () {
                           final correctIndex = provider.entries.indexOf(entry);
-                          NavigationService().navigateToPreview(correctIndex);
+                          navigationService.navigateToPreview(correctIndex);
                         },
                       );
                     },

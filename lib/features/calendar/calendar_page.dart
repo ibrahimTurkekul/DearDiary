@@ -110,6 +110,7 @@ class _CalendarPageState extends State<CalendarPage> {
   Widget build(BuildContext context) {
     final provider = Provider.of<DiaryProvider>(context);
     final settingsManager = Provider.of<SettingsManager>(context);
+    final navigationService = Provider.of<NavigationService>(context, listen: false);
     final selectedDayEntries = _getEntriesForDay(_selectedDay);
 
     // Zaman biçimi (24 saat veya 12 saat)
@@ -203,7 +204,7 @@ class _CalendarPageState extends State<CalendarPage> {
                         entry: entry,
                         onTap: () {
                           final correctIndex = provider.entries.indexOf(entry);
-                          NavigationService().navigateToPreview(correctIndex);
+                          navigationService.navigateToPreview(correctIndex);
                         },
                         displayOnlyTime: true, // Sadece saat göstermek için
                       );
@@ -214,7 +215,7 @@ class _CalendarPageState extends State<CalendarPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          await NavigationService().navigateToAddEntry(date: _selectedDay);
+          await navigationService.navigateToAddEntry(date: _selectedDay);
           _groupEntries();
         },
         child: const Icon(Icons.add),

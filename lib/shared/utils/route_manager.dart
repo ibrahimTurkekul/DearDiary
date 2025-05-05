@@ -4,6 +4,9 @@ import 'package:deardiary/features/diary/pages/home_page.dart';
 import 'package:deardiary/features/diary/pages/search_page.dart';
 import 'package:deardiary/features/settings/pages/backup_options_page.dart';
 import 'package:deardiary/features/settings/pages/date_format_popup.dart';
+import 'package:deardiary/features/settings/pages/diary_lock/diary_lock_page.dart';
+import 'package:deardiary/features/settings/pages/diary_lock/pattern_lock_setup_page.dart';
+import 'package:deardiary/features/settings/pages/diary_lock/pin_lock_setup_page.dart';
 import 'package:deardiary/features/settings/pages/donation_page.dart';
 import 'package:deardiary/features/settings/pages/feedback_page.dart';
 import 'package:deardiary/features/settings/pages/first_day_of_week_popup.dart';
@@ -98,6 +101,12 @@ class RouteManager {
         return MaterialPageRoute(builder: (_) => const LanguageSelectionPage());
       case '/donation':
         return MaterialPageRoute(builder: (_) => const DonationPage());
+      case '/patternLockSetup':
+        return MaterialPageRoute(builder: (_) => const PatternLockSetupPage());
+      case '/pinLockSetup':
+        return MaterialPageRoute(builder: (_) => PinLockSetupPage()); // Const???
+      case '/diaryLock':
+        return MaterialPageRoute(builder: (_) => const DiaryLockPage()); // Günlük kilidi sayfası için placeholder 
       default:
         // Varsayılan olarak 404 sayfası
         return _errorRoute('404 - Sayfa Bulunamadı');

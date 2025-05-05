@@ -39,14 +39,17 @@ class NavigationService {
   Future<dynamic> navigateToFirstDayOfWeek() => navigateTo('/firstDayOfWeek'); // FirstDayOfWeekPage için eklenen kod
   Future<dynamic> navigateToDateFormat() => navigateTo('/dateFormat'); // DateFormatPage için eklenen kod 
   Future<dynamic> navigateToMoodStyle() => navigateTo('/moodStyle'); // MoodStylePage için eklenen kod
-  Future<dynamic> navigateToDailyLock() => navigateTo('/dailyLock'); // DailyLockPage için eklenen kod
   Future<dynamic> navigateToBackupOptions() => navigateTo('/backupOptions'); // BackupOptionsPage için eklenen kod
-  Future<dynamic> navigateToWidgetSettings() => navigateTo('/widgetSettings'); // WidgetSettingsPage için eklenen kod 
+  //Future<dynamic> navigateToWidgetSettings() => navigateTo('/widgetSettings'); // WidgetSettingsPage için eklenen kod 
   Future<dynamic> navigateToNotifications() => navigateTo('/notifications'); // NotificationPage için eklenen kod
-  Future<dynamic> navigateToPrivacyPolicy() => navigateTo('/privacyPolicy'); // PrivacyPolicyPage için eklenen kod  
-  Future<dynamic> navigateToLanguageSelection() => navigateTo('/languageSelection'); // LanguageSelectionPage için eklenen kod
-  Future<dynamic> navigateToFeedback() => navigateTo('/feedback'); // FeedbackPage için eklenen kod
-  Future<dynamic> navigateToDiaryLock() => navigateTo('/donations'); // DiaryLockPage için eklenen kod
+  //Future<dynamic> navigateToPrivacyPolicy() => navigateTo('/privacyPolicy'); // PrivacyPolicyPage için eklenen kod  
+  //Future<dynamic> navigateToLanguageSelection() => navigateTo('/languageSelection'); // LanguageSelectionPage için eklenen kod
+  //Future<dynamic> navigateToFeedback() => navigateTo('/feedback'); // FeedbackPage için eklenen kod
+  //Future<dynamic> navigateToDiaryLock() => navigateTo('/donations'); 
+  Future<dynamic> navigateToDiaryLockPage() => navigateTo('/diaryLock');
+  Future<dynamic> navigateToPatternLockSetupPage() => navigateTo('/patternLockSetup');
+  Future<dynamic> navigateToPinLockSetupPage() => navigateTo('/pinLockSetup');
+ 
 
   
 

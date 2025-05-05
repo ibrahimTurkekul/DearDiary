@@ -35,6 +35,9 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => DiaryProvider()),
         ChangeNotifierProvider(create: (_) => SelectionManager()),
+        Provider<NavigationService>(
+          create: (_) => NavigationService(),
+        ),
         ChangeNotifierProvider(
           create: (_) => themeService,
         ), // Tema servisini sağlayıcıya ekledik

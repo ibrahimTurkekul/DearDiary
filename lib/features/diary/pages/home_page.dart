@@ -17,6 +17,7 @@ class DiaryHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final selectionManager = Provider.of<SelectionManager>(context);
     final themeService = Provider.of<ThemeService>(context);
+  
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -181,9 +182,10 @@ class DiaryHomePage extends StatelessWidget {
 // Drawer için ayrı bir widget
 class _DiaryDrawer extends StatelessWidget {
   const _DiaryDrawer();
-
+  
   @override
   Widget build(BuildContext context) {
+  final navigationService = Provider.of<NavigationService>(context, listen: false);  
     return Drawer(
       child: ListView(
         children: [
@@ -199,16 +201,14 @@ class _DiaryDrawer extends StatelessWidget {
             title: const Text('Tema'),
             onTap: () {
               // Tema Seçenekleri ekranına geçiş
-              NavigationService().navigateTo('/theme');
+              navigationService.navigateTo('/theme');
             },
           ),
           Divider(height: 30, color: Colors.grey[300]),
           ListTile(
             leading: const Icon(Icons.lock),
             title: const Text('Günlük Kilidi'),
-            onTap: () {
-              // Kilidi ayarlama ekranına geçiş
-            },
+            onTap: () => navigationService.navigateTo('/diaryLock'),
           ),
           ListTile(
             leading: const Icon(Icons.backup),
@@ -251,7 +251,7 @@ class _DiaryDrawer extends StatelessWidget {
             title: const Text('Ayarlar'),
             onTap: () {
               // Ayarlar ekranına geçiş
-              NavigationService().navigateTo('/settings');
+              navigationService.navigateTo('/settings');
             },
           ),
         ],
@@ -266,6 +266,7 @@ class _DiaryAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final navigationService = Provider.of<NavigationService>(context, listen: false);
     return AppBar(
       title: const Text('DearDiary'),
       backgroundColor: Colors.transparent,
@@ -274,7 +275,7 @@ class _DiaryAppBar extends StatelessWidget implements PreferredSizeWidget {
           icon: const Icon(Icons.search),
           onPressed: () {
             // Arama işlemi
-            NavigationService().navigateTo('/search');
+            navigationService.navigateTo('/search');
           },
         ),
       ],
@@ -292,6 +293,7 @@ class _CustomFloatingButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final navigationService = Provider.of<NavigationService>(context, listen: false);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -302,7 +304,7 @@ class _CustomFloatingButtons extends StatelessWidget {
           foregroundColor: Colors.white,
           shape: const CircleBorder(),
           onPressed: () {
-            NavigationService().navigateTo('/calendar');
+            navigationService.navigateTo('/calendar');
           },
           child: const Icon(Icons.calendar_month,size: 18.0,),
         ),
@@ -316,7 +318,7 @@ class _CustomFloatingButtons extends StatelessWidget {
           duration: const Duration(milliseconds: 8 * 300),
           child: FloatingActionButton(
             onPressed: () {
-              NavigationService().navigateToAddEntry();
+              navigationService.navigateToAddEntry();
             },
             backgroundColor: themeService.fabColor, // FAB buton rengi temaya bağlı
             foregroundColor: Colors.white,

@@ -13,6 +13,7 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     // `loadSettings` çağrısı, `FutureBuilder` ile asenkron olarak beklenir.
     final settingsManager = Provider.of<SettingsManager>(context, listen: false);
+    final navigationService = Provider.of<NavigationService>(context, listen: false);
 
     return FutureBuilder(
       future: settingsManager.loadSettings(),
@@ -46,37 +47,37 @@ class SettingsPage extends StatelessWidget {
                 title: 'Ruh Hali Tarzı',
                 icon: Icons.mood,
                 trailing: Icon(Icons.keyboard_arrow_right),
-                onTap: () => NavigationService().navigateTo('/moodStyle'),
+                onTap: () => navigationService.navigateTo('/moodStyle'),
               ),
               SettingsMenuItem(
                 title: 'Günlük Kilidi',
                 icon: Icons.lock,
                 trailing: Icon(Icons.keyboard_arrow_right),
-                onTap: () => NavigationService().navigateTo('/dailyLock'),
+                onTap: () => navigationService.navigateTo('/diaryLock'),
               ),
               SettingsMenuItem(
                 title: 'Yedekleme Seçenekleri',
                 icon: Icons.backup,
                 trailing: Icon(Icons.keyboard_arrow_right),
-                onTap: () => NavigationService().navigateTo('/backupOptions'),
+                onTap: () => navigationService.navigateTo('/backupOptions'),
               ),
               SettingsMenuItem(
                 title: 'Temalar',
                 icon: Icons.color_lens,
                 trailing: Icon(Icons.keyboard_arrow_right),
-                onTap: () => NavigationService().navigateTo('/theme'),
+                onTap: () => navigationService.navigateTo('/theme'),
               ),
               SettingsMenuItem(
                 title: 'Widget',
                 icon: Icons.widgets,
                 trailing: Icon(Icons.keyboard_arrow_right),
-                onTap: () => NavigationService().navigateTo('/widgetSettings'),
+                onTap: () => navigationService.navigateTo('/widgetSettings'),
               ),
               SettingsMenuItem(
                 title: 'Bildirim',
                 icon: Icons.notifications,
                 trailing: Icon(Icons.keyboard_arrow_right),
-                onTap: () => NavigationService().navigateTo('/notifications'),
+                onTap: () => navigationService.navigateTo('/notifications'),
               ),
               const Divider(),
 
@@ -151,27 +152,27 @@ class SettingsPage extends StatelessWidget {
               SettingsMenuItem(
                 title: 'Gizlilik Politikası',
                 icon: Icons.privacy_tip,
-                onTap: () => NavigationService().navigateTo('/privacyPolicy'),
+                onTap: () => navigationService.navigateTo('/privacyPolicy'),
               ),
               SettingsMenuItem(
                 title: 'Bizi değerlendirin',
                 icon: Icons.star_rate,
-                onTap: () => NavigationService().navigateTo('/rateUs'),
+                onTap: () => navigationService.navigateTo('/rateUs'),
               ),
               SettingsMenuItem(
                 title: 'Geri Bildirim',
                 icon: Icons.feedback,
-                onTap: () => NavigationService().navigateTo('/feedback'),
+                onTap: () => navigationService.navigateTo('/feedback'),
               ),
               SettingsMenuItem(
                 title: 'Dil Seçenekleri',
                 icon: Icons.language,
-                onTap: () => NavigationService().navigateTo('/languageOptions'),
+                onTap: () => navigationService.navigateTo('/languageOptions'),
               ),
               SettingsMenuItem(
                 title: 'Bağış Yap',
                 icon: Icons.volunteer_activism,
-                onTap: () => NavigationService().navigateTo('/donation'),
+                onTap: () => navigationService.navigateTo('/donation'),
               ),
             ],
           ),
