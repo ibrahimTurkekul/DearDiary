@@ -2,6 +2,7 @@ import 'package:deardiary/features/settings/repository/settings_repository.dart'
 import 'package:deardiary/features/settings/services/notification_service.dart';
 import 'package:deardiary/features/settings/services/settings_manager.dart';
 import 'package:deardiary/features/settings/services/theme_service.dart';
+import 'package:deardiary/features/settings/services/lock_manager.dart'; // Günlük kilidi yönetimi
 import 'package:deardiary/shared/utils/navigation_service.dart';
 import 'package:deardiary/shared/utils/route_manager.dart';
 import 'package:deardiary/shared/utils/selection_manager.dart';
@@ -86,6 +87,60 @@ class MyApp extends StatelessWidget {
       navigatorKey: NavigationService().navigatorKey,
       initialRoute: '/',
       onGenerateRoute: RouteManager.generateRoute,
+    );
+  }
+}
+
+class AppLifecycleHandler extends StatefulWidget {
+  final Widget child;
+
+  const AppLifecycleHandler({Key? key, required this.child}) : super(key: key);
+
+  @override
+  State<AppLifecycleHandler> createState() => _AppLifecycleHandlerState();
+}
+
+class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this); // Uygulama yaşam döngüsünü izlemek için ekle
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this); // Gözlemciyi kaldır
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    final lockManager = LockManager();
+
+    if (state == AppLifecycleState.resumed || state == AppLifecycleState.detached) {
+      final isDiaryLockEnabled = await lockManager.isDiaryLockEnabled();
+
+      if (isDiaryLockEnabled) {
+        // Kullanıcıyı şifre doğrulama sayfasına yönlendir
+        NavigationService().navigateTo('/patternLockVerify');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
+  }
+}
+
+class AppEntryPoint extends StatelessWidget {
+  const AppEntryPoint({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppLifecycleHandler(
+      child: const MyApp(),
     );
   }
 }

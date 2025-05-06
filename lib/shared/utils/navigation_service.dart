@@ -48,7 +48,10 @@ class NavigationService {
   //Future<dynamic> navigateToDiaryLock() => navigateTo('/donations'); 
   Future<dynamic> navigateToDiaryLockPage() => navigateTo('/diaryLock');
   Future<dynamic> navigateToPatternLockSetupPage() => navigateTo('/patternLockSetup');
+  Future<dynamic> navigateToSecurityQuestionSetupPage() => navigateTo('/securityQuestionSetup');
   Future<dynamic> navigateToPinLockSetupPage() => navigateTo('/pinLockSetup');
+  Future<dynamic> navigateToDonationPage() => navigateTo('/emailSetup'); 
+  Future<dynamic> navigateToEmailSetupPage() => navigateTo('/patternLockVerify');
  
 
   

@@ -5,8 +5,11 @@ import 'package:deardiary/features/diary/pages/search_page.dart';
 import 'package:deardiary/features/settings/pages/backup_options_page.dart';
 import 'package:deardiary/features/settings/pages/date_format_popup.dart';
 import 'package:deardiary/features/settings/pages/diary_lock/diary_lock_page.dart';
+import 'package:deardiary/features/settings/pages/diary_lock/email_setup_page.dart';
 import 'package:deardiary/features/settings/pages/diary_lock/pattern_lock_setup_page.dart';
+import 'package:deardiary/features/settings/pages/diary_lock/pattern_lock_verify_page.dart';
 import 'package:deardiary/features/settings/pages/diary_lock/pin_lock_setup_page.dart';
+import 'package:deardiary/features/settings/pages/diary_lock/security_question_page.dart';
 import 'package:deardiary/features/settings/pages/donation_page.dart';
 import 'package:deardiary/features/settings/pages/feedback_page.dart';
 import 'package:deardiary/features/settings/pages/first_day_of_week_popup.dart';
@@ -103,10 +106,38 @@ class RouteManager {
         return MaterialPageRoute(builder: (_) => const DonationPage());
       case '/patternLockSetup':
         return MaterialPageRoute(builder: (_) => const PatternLockSetupPage());
+      case '/patternLockVerify':
+        return MaterialPageRoute(builder: (_) => const PatternLockVerifyPage());
+      case '/securityQuestionSetup':
+        final args = settings.arguments as Map<String, dynamic>?;
+
+        if (args == null || !args.containsKey('pattern')) {
+          throw ArgumentError('Eksik argüman: pattern');
+        }
+
+        return MaterialPageRoute(
+          builder: (_) => SecurityQuestionPage(pattern: args['pattern']),
+        ); // Güvenlik sorusu sayfası için placeholder
       case '/pinLockSetup':
         return MaterialPageRoute(builder: (_) => PinLockSetupPage()); // Const???
       case '/diaryLock':
         return MaterialPageRoute(builder: (_) => const DiaryLockPage()); // Günlük kilidi sayfası için placeholder 
+      case '/emailSetup':
+        final args = settings.arguments as Map<String, dynamic>?;
+
+        if (args == null || !args.containsKey('selectedQuestion') || !args.containsKey('securityAnswer') || !args.containsKey('pattern')) {
+          throw ArgumentError('Eksik argüman: selectedQuestion, securityAnswer veya pattern');
+        }
+
+        return MaterialPageRoute(
+          builder: (_) => EmailSetupPage(
+            selectedQuestion: args['selectedQuestion'],
+            securityAnswer: args['securityAnswer'],
+            pattern: args['pattern'],
+          ),
+        );
+
+      
       default:
         // Varsayılan olarak 404 sayfası
         return _errorRoute('404 - Sayfa Bulunamadı');
