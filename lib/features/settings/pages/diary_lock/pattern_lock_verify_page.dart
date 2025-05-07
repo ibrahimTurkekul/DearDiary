@@ -12,7 +12,8 @@ class PatternLockVerifyPage extends StatefulWidget {
 }
 
 class _PatternLockVerifyPageState extends State<PatternLockVerifyPage> {
-  String displayMessage = "Lütfen şifrenizi giriniz"; // Kullanıcıya gösterilecek dinamik mesaj
+  String displayMessage =
+      "Lütfen şifrenizi giriniz"; // Kullanıcıya gösterilecek dinamik mesaj
 
   Future<void> _handlePatternInput(List<int> pattern) async {
     final lockManager = LockManager();
@@ -37,9 +38,7 @@ class _PatternLockVerifyPageState extends State<PatternLockVerifyPage> {
     final size = MediaQuery.of(context).size; // Ekran boyutları
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Şifre Doğrulama"),
-      ),
+      appBar: AppBar(title: const Text("Şifre Doğrulama")),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -47,9 +46,10 @@ class _PatternLockVerifyPageState extends State<PatternLockVerifyPage> {
             Text(
               displayMessage,
               style: TextStyle(
-                color: displayMessage == "Hatalı şifre! Tekrar deneyin."
-                    ? Colors.red
-                    : Colors.black,
+                color:
+                    displayMessage == "Hatalı şifre! Tekrar deneyin."
+                        ? Colors.red
+                        : Colors.black,
                 fontSize: 18,
               ),
             ),
