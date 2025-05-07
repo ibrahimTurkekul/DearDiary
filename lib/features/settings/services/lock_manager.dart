@@ -9,6 +9,7 @@ class LockManager {
   static const _securityAnswerKey = 'security_answer';
   static const _emailKey = 'email_address';
   static const _diaryLockEnabledKey = 'diary_lock_enabled';
+  static const _patternDimensionKey = 'pattern_dimension';
 
   // Şifreleme işlemi - SHA-256 ile hash oluşturma
   String _generateHash(String input) {
@@ -29,6 +30,19 @@ class LockManager {
     final savedHash = prefs.getString(_patternKey);
     final inputHash = _generateHash(pattern.join());
     return savedHash == inputHash;
+  }
+
+    // Desen boyutunu kaydetme
+  Future<void> savePatternDimension(int dimension) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_patternDimensionKey, dimension);
+  }
+
+
+  // Desen boyutunu alma
+  Future<int?> getPatternDimension() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_patternDimensionKey); // Kaydedilen boyutu döndür
   }
 
   // PIN kaydetme
@@ -101,6 +115,12 @@ class LockManager {
   Future<bool> isPinSet() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.containsKey(_pinKey);
+  }
+
+    // Parmak izi toggle durumunu kontrol et
+  Future<bool> isFingerprintEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('fingerprint_enabled') ?? false;
   }
 
   // Tüm kilit verilerini temizleme

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:deardiary/features/settings/repository/settings_repository.dart';
 import 'package:deardiary/features/settings/services/notification_service.dart';
 import 'package:deardiary/features/settings/services/settings_manager.dart';
@@ -6,7 +7,6 @@ import 'package:deardiary/features/settings/services/lock_manager.dart'; // Gün
 import 'package:deardiary/shared/utils/navigation_service.dart';
 import 'package:deardiary/shared/utils/route_manager.dart';
 import 'package:deardiary/shared/utils/selection_manager.dart';
-import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:provider/provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -31,6 +31,11 @@ void main() async {
   final themeService = ThemeService();
   await themeService.loadThemes();
 
+  final lockManager = LockManager(); // Günlük kilidi kontrolü için
+
+  // Günlük kilidi kontrolü
+  final isDiaryLockEnabled = await lockManager.isDiaryLockEnabled();
+
   runApp(
     MultiProvider(
       providers: [
@@ -52,13 +57,30 @@ void main() async {
           },
         ),
       ],
-      child: const MyApp(),
+      child: AppEntryPoint(
+        initialRoute: isDiaryLockEnabled ? '/patternLockVerify' : '/', // Başlangıç rotası
+      ),
     ),
   );
 }
 
+class AppEntryPoint extends StatelessWidget {
+  final String initialRoute;
+
+  const AppEntryPoint({Key? key, required this.initialRoute}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppLifecycleHandler(
+      child: MyApp(initialRoute: initialRoute),
+    );
+  }
+}
+
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String initialRoute;
+
+  const MyApp({super.key, required this.initialRoute});
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +107,7 @@ class MyApp extends StatelessWidget {
       themeMode: themeService.themeMode, // Dinamik tema modu
       debugShowCheckedModeBanner: false,
       navigatorKey: NavigationService().navigatorKey,
-      initialRoute: '/',
+      initialRoute: initialRoute, // Günlük kilidine göre başlat
       onGenerateRoute: RouteManager.generateRoute,
     );
   }
@@ -105,25 +127,32 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this); // Uygulama yaşam döngüsünü izlemek için ekle
+    WidgetsBinding.instance.addObserver(this); // Uygulama yaşam döngüsünü izle
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this); // Gözlemciyi kaldır
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     final lockManager = LockManager();
+    final navigationService = NavigationService();
 
-    if (state == AppLifecycleState.resumed || state == AppLifecycleState.detached) {
+    if (state == AppLifecycleState.resumed) {
+      // Günlük kilidi kontrolü
       final isDiaryLockEnabled = await lockManager.isDiaryLockEnabled();
 
       if (isDiaryLockEnabled) {
-        // Kullanıcıyı şifre doğrulama sayfasına yönlendir
-        NavigationService().navigateTo('/patternLockVerify');
+        final currentContext = navigationService.navigatorKey.currentContext;
+        final currentRoute = ModalRoute.of(currentContext!);
+
+        if (currentRoute?.settings.name != '/patternLockVerify') {
+          // Kullanıcı doğrulama ekranında değilse yönlendir
+          navigationService.navigateTo('/patternLockVerify');
+        }
       }
     }
   }
@@ -131,16 +160,5 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
   @override
   Widget build(BuildContext context) {
     return widget.child;
-  }
-}
-
-class AppEntryPoint extends StatelessWidget {
-  const AppEntryPoint({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return AppLifecycleHandler(
-      child: const MyApp(),
-    );
   }
 }

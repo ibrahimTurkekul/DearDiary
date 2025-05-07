@@ -60,7 +60,7 @@ class _SecurityQuestionPageState extends State<SecurityQuestionPage> {
 
     if (shouldDeactivateToggle ?? false) {
       // Günlük kilidi toggle'ını pasif hale getir ve geri dön
-      navigationService.navigateTo('/diaryLock');
+      navigationService.navigateToAndClearStack('/diaryLock');
     }
   }
 

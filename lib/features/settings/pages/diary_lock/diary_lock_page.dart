@@ -66,6 +66,12 @@ class _DiaryLockPageState extends State<DiaryLockPage> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () {
+          navigationService.navigateTo('/'); // Ayarlar sayfasına geri dön
+        },
+      ),
         title: const Text("Günlük Kilidi Ayarları"),
       ),
       body: Padding(

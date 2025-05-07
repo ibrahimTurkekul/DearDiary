@@ -44,9 +44,24 @@ class _EmailSetupPageState extends State<EmailSetupPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context); // Popup'ı kapat
-              navigationService.navigateTo('/diaryLock'); // Günlük kilidi sayfasına git
+
+              // Güvenlik sorusu ve desen bilgilerini kaydet
+              final lockManager = LockManager();
+              await lockManager.savePattern(widget.pattern);
+              await lockManager.saveSecurityQuestion(
+                widget.selectedQuestion,
+                widget.securityAnswer,
+              );
+              await lockManager.activateDiaryLock(); // Günlük kilidini aktif hale getir
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Bilgiler başarıyla kaydedildi. E-posta atlandı.")),
+              );
+
+              // Günlük kilidi sayfasına git, yığın temizlenir
+              navigationService.navigateToAndClearStack('/diaryLock');
             },
             child: const Text("Yine de Atla"),
           ),
@@ -88,9 +103,9 @@ class _EmailSetupPageState extends State<EmailSetupPage> {
         const SnackBar(content: Text("Bilgiler başarıyla kaydedildi")),
       );
 
-      // Günlük kilidi sayfasına dön
+      // Günlük kilidi sayfasına dön, yığın temizlenir
       Future.delayed(const Duration(seconds: 1), () {
-        navigationService.navigateTo('/diaryLock');
+        navigationService.navigateToAndClearStack('/diaryLock');
       });
     }
   }
@@ -100,12 +115,14 @@ class _EmailSetupPageState extends State<EmailSetupPage> {
     final size = MediaQuery.of(context).size; // Ekran boyutlarını alır
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         title: const Text("E-posta Adresini Ayarla"),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context); // Geri git
+            Provider.of<NavigationService>(context, listen: false).navigateToAndClearStack('/diaryLock');
           },
         ),
       ),
