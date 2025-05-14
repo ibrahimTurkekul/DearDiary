@@ -42,6 +42,7 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   pattern_lock: ^2.0.0
   flutter_screen_lock: ^9.2.1+1
+  local_auth: ^2.3.0
   
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

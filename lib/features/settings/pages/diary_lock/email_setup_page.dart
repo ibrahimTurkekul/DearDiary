@@ -6,13 +6,18 @@ import 'package:provider/provider.dart';
 class EmailSetupPage extends StatefulWidget {
   final String selectedQuestion; // Güvenlik sorusu
   final String securityAnswer; // Güvenlik sorusunun cevabı
-  final List<int> pattern; // Desen kilidi
+  final List<int>? pattern; // Desen bilgisi (null olabilir)
+  final String? pin; // PIN bilgisi (null olabilir)
+  final String lockType; // Kilit türü (PIN, desen vb.)
 
   const EmailSetupPage({
     super.key,
     required this.selectedQuestion,
     required this.securityAnswer,
-    required this.pattern,
+    required this.lockType,
+    this.pattern, 
+    this.pin,
+    
   });
 
   @override
@@ -44,9 +49,31 @@ class _EmailSetupPageState extends State<EmailSetupPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context); // Popup'ı kapat
-              navigationService.navigateTo('/diaryLock'); // Günlük kilidi sayfasına git
+
+              // Güvenlik sorusu ve desen bilgilerini kaydet
+              final lockManager = LockManager();
+              if (widget.pattern != null) {
+                await lockManager.savePattern(widget.pattern!);
+              }
+              if (widget.pin != null) {
+                await lockManager.savePin(widget.pin!);
+              }
+              await lockManager.setActiveLockType(widget.lockType);
+              
+              await lockManager.saveSecurityQuestion(
+                widget.selectedQuestion,
+                widget.securityAnswer,
+              );
+              await lockManager.activateDiaryLock(); // Günlük kilidini aktif hale getir
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Bilgiler başarıyla kaydedildi. E-posta atlandı.")),
+              );
+
+              // Günlük kilidi sayfasına git, yığın temizlenir
+              navigationService.navigateToAndClearStack('/diaryLock');
             },
             child: const Text("Yine de Atla"),
           ),
@@ -65,6 +92,8 @@ class _EmailSetupPageState extends State<EmailSetupPage> {
     final navigationService = Provider.of<NavigationService>(context, listen: false);
     final lockManager = LockManager();
 
+    await lockManager.clearAll();
+
     setState(() {
       emailError = _isValidEmail(emailController.text)
           ? null
@@ -76,7 +105,15 @@ class _EmailSetupPageState extends State<EmailSetupPage> {
 
     if (emailError == null && confirmEmailError == null) {
       // Tüm verileri kaydet
-      await lockManager.savePattern(widget.pattern);
+      if (widget.pattern != null) {
+         await lockManager.savePattern(widget.pattern!);
+      }
+      if (widget.pin != null) {
+         await lockManager.savePin(widget.pin!);
+      }
+
+      await lockManager.setActiveLockType(widget.lockType);
+
       await lockManager.saveSecurityQuestion(
         widget.selectedQuestion,
         widget.securityAnswer,
@@ -88,10 +125,42 @@ class _EmailSetupPageState extends State<EmailSetupPage> {
         const SnackBar(content: Text("Bilgiler başarıyla kaydedildi")),
       );
 
-      // Günlük kilidi sayfasına dön
+      // Günlük kilidi sayfasına dön, yığın temizlenir
       Future.delayed(const Duration(seconds: 1), () {
-        navigationService.navigateTo('/diaryLock');
+        navigationService.navigateToAndClearStack('/diaryLock');
       });
+    }
+  }
+
+   // Kullanıcı ilerlemeden çıkarsa toggle durumunu kontrol et
+  Future<void> _handleExit() async {
+    final navigationService = Provider.of<NavigationService>(context, listen: false);
+    // Kullanıcıdan çıkış onayı alın ya da toggle'ı pasif hale getir
+    final shouldDeactivateToggle = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Şifre Kurulumu İptal Edilsin mi?"),
+        content: const Text(
+          "Kurulum işlemini tamamlamadan çıkarsanız günlük kilidi devre dışı bırakılacaktır.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false), // Çıkışı iptal et
+            child: const Text("Hayır"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true), // Çıkışı kabul et
+            child: const Text("Evet"),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDeactivateToggle ?? false) {
+      final lockManager = LockManager();
+      await lockManager.clearAll();
+      // Günlük kilidi toggle'ını pasif hale getir ve geri dön
+      navigationService.navigateToAndClearStack('/diaryLock');
     }
   }
 
@@ -100,13 +169,13 @@ class _EmailSetupPageState extends State<EmailSetupPage> {
     final size = MediaQuery.of(context).size; // Ekran boyutlarını alır
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         title: const Text("E-posta Adresini Ayarla"),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context); // Geri git
-          },
+          onPressed: () async => await _handleExit(),
         ),
       ),
       body: Stack(
@@ -122,7 +191,7 @@ class _EmailSetupPageState extends State<EmailSetupPage> {
           ),
           // Siyah transparan overlay
           Container(
-            color: Colors.black.withOpacity(0.95), // Siyaha yakın ton
+            color: Colors.black.withOpacity(0.90), // Siyaha yakın ton
           ),
           Center(
             child: Padding(

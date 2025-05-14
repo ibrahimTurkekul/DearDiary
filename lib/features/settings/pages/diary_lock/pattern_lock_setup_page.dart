@@ -2,9 +2,10 @@ import 'package:deardiary/shared/utils/navigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:pattern_lock/pattern_lock.dart';
 import 'package:provider/provider.dart';
+import '../../services/lock_manager.dart'; // LockManager import edildi
 
 class PatternLockSetupPage extends StatefulWidget {
-  const PatternLockSetupPage({super.key});
+  const PatternLockSetupPage({super.key, required lockType});
 
   @override
   State<PatternLockSetupPage> createState() => _PatternLockSetupPageState();
@@ -14,6 +15,25 @@ class _PatternLockSetupPageState extends State<PatternLockSetupPage> {
   List<int>? firstPattern;
   int dimension = 3; // Varsayılan olarak 3x3 desen
   String displayMessage = "Kilit açma deseni çizin"; // Dinamik mesaj
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPatternDimension(); // Kaydedilen dimension bilgisini yükle
+  }
+
+  Future<void> _loadPatternDimension() async {
+    final lockManager = LockManager();
+    final savedDimension = await lockManager.getPatternDimension();
+    setState(() {
+      dimension = savedDimension ?? 3; // Eğer kaydedilmemişse varsayılan olarak 3x3
+    });
+  }
+
+  Future<void> _savePatternDimension(int newDimension) async {
+    final lockManager = LockManager();
+    await lockManager.savePatternDimension(newDimension); // Yeni dimension bilgisini kaydet
+  }
 
   // Kullanıcı ilerlemeden çıkarsa toggle durumunu kontrol et
   Future<void> _handleExit() async {
@@ -40,6 +60,8 @@ class _PatternLockSetupPageState extends State<PatternLockSetupPage> {
     );
 
     if (shouldDeactivateToggle ?? false) {
+      final lockManager = LockManager();
+      await lockManager.clearAll();
       // Günlük kilidi toggle'ını pasif hale getir ve geri dön
       navigationService.navigateTo('/diaryLock');
     }
@@ -67,9 +89,10 @@ class _PatternLockSetupPageState extends State<PatternLockSetupPage> {
           navigationService.navigateTo(
             '/securityQuestionSetup',
             arguments: {
+              'lockType': 'pattern', // Desen kilidi türü
               'pattern': pattern,
             },
-            ); // Güvenlik sorusu sayfasına yönlendirme
+          ); // Güvenlik sorusu sayfasına yönlendirme
         });
       } else {
         setState(() {
@@ -113,7 +136,7 @@ class _PatternLockSetupPageState extends State<PatternLockSetupPage> {
             ),
             // Siyah transparan overlay
             Container(
-              color: Colors.black.withOpacity(0.95), // Siyaha yakın ton
+              color: Colors.black.withValues(alpha:0.90), // Siyaha yakın ton
             ),
             Center(
               child: Padding(
@@ -156,10 +179,12 @@ class _PatternLockSetupPageState extends State<PatternLockSetupPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         GestureDetector(
-                          onTap: () {
+                          onTap: () async {
+                            final newDimension = dimension == 3 ? 5 : 3;
                             setState(() {
-                              dimension = dimension == 3 ? 5 : 3; // Desen boyutu değişimi
+                              dimension = newDimension; // Desen boyutu değişimi
                             });
+                            await _savePatternDimension(newDimension); // Yeni boyutu kaydet
                           },
                           child: Text(
                             dimension == 3 ? "Daha Güçlü Desen" : "Daha Kolay Desen",

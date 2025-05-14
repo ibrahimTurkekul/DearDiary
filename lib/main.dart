@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:deardiary/features/settings/repository/settings_repository.dart';
 import 'package:deardiary/features/settings/services/notification_service.dart';
 import 'package:deardiary/features/settings/services/settings_manager.dart';
@@ -6,7 +7,6 @@ import 'package:deardiary/features/settings/services/lock_manager.dart'; // Gün
 import 'package:deardiary/shared/utils/navigation_service.dart';
 import 'package:deardiary/shared/utils/route_manager.dart';
 import 'package:deardiary/shared/utils/selection_manager.dart';
-import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:provider/provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -31,6 +31,13 @@ void main() async {
   final themeService = ThemeService();
   await themeService.loadThemes();
 
+  final lockManager = LockManager(); // Günlük kilidi kontrolü için
+
+  // Günlük kilidi kontrolü
+  final isDiaryLockEnabled = await lockManager.isDiaryLockEnabled();
+  final lockType =
+      await lockManager.getActiveLockType(); // PIN veya Pattern kontrolü
+
   runApp(
     MultiProvider(
       providers: [
@@ -38,6 +45,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => SelectionManager()),
         Provider<NavigationService>(
           create: (_) => NavigationService(),
+          lazy: false,
         ),
         ChangeNotifierProvider(
           create: (_) => themeService,
@@ -52,18 +60,42 @@ void main() async {
           },
         ),
       ],
-      child: const MyApp(),
+      child: AppEntryPoint(
+        initialRoute:
+            isDiaryLockEnabled
+                ? (lockType == 'pin'
+                    ? '/pinLockVerify'
+                    : '/patternLockVerify') // Kilit türüne göre rota
+                : '/', // Günlük kilidi devre dışıysa ana sayfaya yönlendir
+      ),
     ),
   );
 }
 
+class AppEntryPoint extends StatelessWidget {
+  final String initialRoute;
+
+  const AppEntryPoint({super.key, required this.initialRoute});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppLifecycleHandler(child: MyApp(initialRoute: initialRoute));
+  }
+}
+
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String initialRoute;
+
+  const MyApp({super.key, required this.initialRoute});
 
   @override
   Widget build(BuildContext context) {
     // ThemeService'i dinlemek için Provider kullan
     final themeService = Provider.of<ThemeService>(context);
+    final navigationService = Provider.of<NavigationService>(
+      context,
+      listen: false,
+    );
 
     return MaterialApp(
       theme: ThemeData(
@@ -84,8 +116,8 @@ class MyApp extends StatelessWidget {
       darkTheme: ThemeData.dark(), // Koyu tema
       themeMode: themeService.themeMode, // Dinamik tema modu
       debugShowCheckedModeBanner: false,
-      navigatorKey: NavigationService().navigatorKey,
-      initialRoute: '/',
+      navigatorKey: navigationService.navigatorKey,
+      initialRoute: initialRoute, // Günlük kilidine göre başlat
       onGenerateRoute: RouteManager.generateRoute,
     );
   }
@@ -94,7 +126,7 @@ class MyApp extends StatelessWidget {
 class AppLifecycleHandler extends StatefulWidget {
   final Widget child;
 
-  const AppLifecycleHandler({Key? key, required this.child}) : super(key: key);
+  const AppLifecycleHandler({super.key, required this.child});
 
   @override
   State<AppLifecycleHandler> createState() => _AppLifecycleHandlerState();
@@ -105,25 +137,54 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this); // Uygulama yaşam döngüsünü izlemek için ekle
+    WidgetsBinding.instance.addObserver(this); // Uygulama yaşam döngüsünü izle
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this); // Gözlemciyi kaldır
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     final lockManager = LockManager();
+    final navigationService = NavigationService();
 
-    if (state == AppLifecycleState.resumed || state == AppLifecycleState.detached) {
+    if (state == AppLifecycleState.resumed && !lockManager.isAuthenticated) {
       final isDiaryLockEnabled = await lockManager.isDiaryLockEnabled();
 
       if (isDiaryLockEnabled) {
-        // Kullanıcıyı şifre doğrulama sayfasına yönlendir
-        NavigationService().navigateTo('/patternLockVerify');
+        final lockType = await lockManager.getActiveLockType();
+        final currentContext = navigationService.navigatorKey.currentContext;
+
+        if (currentContext == null) {
+          print(
+            "Hata: currentContext null! NavigationService navigatorKey doğru atanmış mı?",
+          );
+          return; // Yönlendirme yapılmaz
+        }
+
+        final currentRoute = ModalRoute.of(currentContext);
+
+        if (currentRoute == null) {
+          print("Hata: currentContext bir ModalRoute ile ilişkilendirilmemiş!");
+          // Varsayılan bir rota belirleyin
+          navigationService.navigateTo(
+            lockType == 'pattern' ? '/patternLockVerify' : '/pinLockVerify',
+          );
+          return;
+        }
+
+        // Rotayı kontrol et ve yönlendir
+        if ((lockType == 'pattern' &&
+                currentRoute.settings.name != '/patternLockVerify') ||
+            (lockType == 'pin' &&
+                currentRoute.settings.name != '/pinLockVerify')) {
+          navigationService.navigateTo(
+            lockType == 'pattern' ? '/patternLockVerify' : '/pinLockVerify',
+          );
+        }
       }
     }
   }
@@ -131,16 +192,5 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
   @override
   Widget build(BuildContext context) {
     return widget.child;
-  }
-}
-
-class AppEntryPoint extends StatelessWidget {
-  const AppEntryPoint({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return AppLifecycleHandler(
-      child: const MyApp(),
-    );
   }
 }

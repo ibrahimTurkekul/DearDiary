@@ -1,11 +1,19 @@
+import 'package:deardiary/features/settings/services/lock_manager.dart';
 import 'package:deardiary/shared/utils/navigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class SecurityQuestionPage extends StatefulWidget {
-  final List<int> pattern; // Desen bilgisi
+  final List<int>? pattern; // Desen bilgisi (null olabilir)
+  final String lockType; // Kilit türü (PIN, desen vb.)
+  final String? pin; // PIN bilgisi (null olabilir)
 
-  const SecurityQuestionPage({super.key, required this.pattern});
+  const SecurityQuestionPage({
+    super.key,
+    required this.lockType,
+    this.pattern,
+    this.pin,
+  });
 
   @override
   State<SecurityQuestionPage> createState() => _SecurityQuestionPageState();
@@ -59,8 +67,10 @@ class _SecurityQuestionPageState extends State<SecurityQuestionPage> {
     );
 
     if (shouldDeactivateToggle ?? false) {
+      final lockManager = LockManager();
+      await lockManager.clearAll();
       // Günlük kilidi toggle'ını pasif hale getir ve geri dön
-      navigationService.navigateTo('/diaryLock');
+      navigationService.navigateToAndClearStack('/diaryLock');
     }
   }
 
@@ -75,6 +85,21 @@ class _SecurityQuestionPageState extends State<SecurityQuestionPage> {
       return;
     }
 
+    // PIN veya desen kontrolü
+    if (widget.lockType == 'pattern' && widget.pattern == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Desen bilgisi eksik. Lütfen tekrar deneyin.")),
+      );
+      return;
+    }
+
+    if (widget.lockType == 'pin' && widget.pin == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("PIN bilgisi eksik. Lütfen tekrar deneyin.")),
+      );
+      return;
+    }
+
     // Kullanıcıyı e-posta sayfasına yönlendir
     navigationService.navigateTo(
       '/emailSetup',
@@ -82,7 +107,10 @@ class _SecurityQuestionPageState extends State<SecurityQuestionPage> {
         'selectedQuestion': selectedQuestion,
         'securityAnswer': answerController.text,
         'pattern': widget.pattern,
-      },);
+        'lockType': widget.lockType,
+        'pin': widget.pin, // PIN bilgisi aktarılıyor (null olabilir)
+      },
+    );
   }
 
   @override
@@ -117,7 +145,7 @@ class _SecurityQuestionPageState extends State<SecurityQuestionPage> {
             ),
             // Siyah transparan overlay
             Container(
-              color: Colors.black.withOpacity(0.95), // Siyaha yakın ton
+              color: Colors.black.withOpacity(0.90), // Siyaha yakın ton
             ),
             Center(
               child: Padding(
@@ -135,28 +163,30 @@ class _SecurityQuestionPageState extends State<SecurityQuestionPage> {
                     ),
                     SizedBox(height: size.height * 0.05), // Boşluk
                     // Soru seçimi
-                    DropdownButtonFormField<String>(
-                      value: selectedQuestion,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                    Flexible(
+                      child: DropdownButtonFormField<String>(
+                        value: selectedQuestion,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 14,
+                          ),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 14,
-                        ),
+                        items: questions
+                            .map((question) => DropdownMenuItem(
+                                  value: question,
+                                  child: Text(question),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedQuestion = value!;
+                          });
+                        },
                       ),
-                      items: questions
-                          .map((question) => DropdownMenuItem(
-                                value: question,
-                                child: Text(question),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedQuestion = value!;
-                        });
-                      },
                     ),
                     SizedBox(height: size.height * 0.03), // Boşluk
                     // Cevap alanı

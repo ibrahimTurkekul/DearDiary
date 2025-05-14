@@ -6,9 +6,11 @@ import 'package:deardiary/features/settings/pages/backup_options_page.dart';
 import 'package:deardiary/features/settings/pages/date_format_popup.dart';
 import 'package:deardiary/features/settings/pages/diary_lock/diary_lock_page.dart';
 import 'package:deardiary/features/settings/pages/diary_lock/email_setup_page.dart';
+import 'package:deardiary/features/settings/pages/diary_lock/forgot_password_page.dart';
 import 'package:deardiary/features/settings/pages/diary_lock/pattern_lock_setup_page.dart';
 import 'package:deardiary/features/settings/pages/diary_lock/pattern_lock_verify_page.dart';
 import 'package:deardiary/features/settings/pages/diary_lock/pin_lock_setup_page.dart';
+import 'package:deardiary/features/settings/pages/diary_lock/pin_lock_verify_page.dart';
 import 'package:deardiary/features/settings/pages/diary_lock/security_question_page.dart';
 import 'package:deardiary/features/settings/pages/donation_page.dart';
 import 'package:deardiary/features/settings/pages/feedback_page.dart';
@@ -19,7 +21,7 @@ import 'package:deardiary/features/settings/pages/notification_page.dart';
 import 'package:deardiary/features/settings/pages/privacy_policy_page.dart';
 import 'package:deardiary/features/settings/pages/settings_page.dart';
 import 'package:deardiary/features/settings/pages/theme_page.dart';
-import 'package:deardiary/features/settings/pages/time_format_popup.dart'; 
+import 'package:deardiary/features/settings/pages/time_format_popup.dart';
 import 'package:deardiary/shared/utils/navigation_service.dart';
 import 'package:flutter/material.dart';
 import '../../features/diary/pages/addEntryPages/add_entry_page.dart';
@@ -31,7 +33,7 @@ class RouteManager {
   static const String firstDayOfWeek = '/firstDayOfWeek';
   static const String dateFormat = '/dateFormat'; // Tarih formatı rotası
   static const String timeFormat = '/timeFormat'; // Zaman formatı rotası
-  
+
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/':
@@ -77,7 +79,7 @@ class RouteManager {
       case '/settings':
         // Ayarlar sayfasına geçiş
         return MaterialPageRoute(builder: (_) => const SettingsPage());
-        
+
       case '/moodStyle':
         return MaterialPageRoute(builder: (_) => const MoodStylePage());
       case '/dailyLock':
@@ -105,39 +107,53 @@ class RouteManager {
       case '/donation':
         return MaterialPageRoute(builder: (_) => const DonationPage());
       case '/patternLockSetup':
-        return MaterialPageRoute(builder: (_) => const PatternLockSetupPage());
+        // Pattern Lock Setup sayfasına argüman geçişi
+        final args = settings.arguments as Map<String, dynamic>? ?? {};
+        return MaterialPageRoute(
+          builder: (_) => PatternLockSetupPage(lockType: args['lockType']), // lockType argümanı ile geçiş
+        );
       case '/patternLockVerify':
         return MaterialPageRoute(builder: (_) => const PatternLockVerifyPage());
+      case '/pinLockVerify':
+        return MaterialPageRoute(builder: (_) => PinLockVerifyPage());
+      
       case '/securityQuestionSetup':
-        final args = settings.arguments as Map<String, dynamic>?;
-
-        if (args == null || !args.containsKey('pattern')) {
-          throw ArgumentError('Eksik argüman: pattern');
+        // Güvenlik sorusu sayfasına geçiş
+        final args = settings.arguments as Map<String, dynamic>? ?? {};
+        if (!args.containsKey('lockType')) {
+          return _errorRoute("SecurityQuestionSetupPage requires a 'lockType' argument.");
         }
-
         return MaterialPageRoute(
-          builder: (_) => SecurityQuestionPage(pattern: args['pattern']),
-        ); // Güvenlik sorusu sayfası için placeholder
+          builder: (_) => SecurityQuestionPage(
+            lockType: args['lockType'], // Kilit türü argümanı
+            pattern: args['pattern'], // Desen kilidi için argüman
+            pin: args['pin'], // PIN kilidi için argüman
+          ),
+        );
       case '/pinLockSetup':
-        return MaterialPageRoute(builder: (_) => PinLockSetupPage()); // Const???
+        return MaterialPageRoute(
+          builder: (_) => PinLockSetupPage(
+            lockType: settings.arguments as String?, // lockType argümanı ile geçiş
+          ),
+        );
       case '/diaryLock':
-        return MaterialPageRoute(builder: (_) => const DiaryLockPage()); // Günlük kilidi sayfası için placeholder 
+        return MaterialPageRoute(builder: (_) => const DiaryLockPage()); // Günlük kilidi sayfası için placeholder
       case '/emailSetup':
         final args = settings.arguments as Map<String, dynamic>?;
-
-        if (args == null || !args.containsKey('selectedQuestion') || !args.containsKey('securityAnswer') || !args.containsKey('pattern')) {
-          throw ArgumentError('Eksik argüman: selectedQuestion, securityAnswer veya pattern');
+        if (args == null || !args.containsKey('selectedQuestion') || !args.containsKey('securityAnswer') || !args.containsKey('pattern') || !args.containsKey('pin')|| !args.containsKey('lockType')) {
+          return _errorRoute('Eksik argüman: selectedQuestion, securityAnswer, pattern, pin veya lockType');
         }
-
         return MaterialPageRoute(
           builder: (_) => EmailSetupPage(
             selectedQuestion: args['selectedQuestion'],
             securityAnswer: args['securityAnswer'],
             pattern: args['pattern'],
+            lockType: args['lockType'],
+            pin: args['pin'], // PIN kilidi için argüman
           ),
         );
-
-      
+      case '/forgotPassword':
+        return MaterialPageRoute(builder: (context) => const ForgotPasswordPage(),);
       default:
         // Varsayılan olarak 404 sayfası
         return _errorRoute('404 - Sayfa Bulunamadı');
